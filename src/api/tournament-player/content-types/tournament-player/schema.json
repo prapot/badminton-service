@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tournament_players",
+  "info": {
+    "singularName": "tournament-player",
+    "pluralName": "tournament-players",
+    "displayName": "tournament_player"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tournament_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "tournament_players"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "tournament_players"
+    },
+    "seed": {
+      "type": "integer"
+    }
+  }
+}

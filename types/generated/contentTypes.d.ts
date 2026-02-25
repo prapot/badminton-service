@@ -646,6 +646,82 @@ export interface ApiSpacialBlogSpacialBlog extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiTournamentPlayerTournamentPlayer
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'tournament_players';
+  info: {
+    displayName: 'tournament_player';
+    pluralName: 'tournament-players';
+    singularName: 'tournament-player';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament-player.tournament-player'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    seed: Schema.Attribute.Integer;
+    tournament_id: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users_permissions_user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
+  collectionName: 'tournaments';
+  info: {
+    displayName: 'tournament';
+    pluralName: 'tournaments';
+    singularName: 'tournament';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    format: Schema.Attribute.Enumeration<
+      ['round_robin ', 'knockout ', 'americano']
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament.tournament'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    tournament_players: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament-player.tournament-player'
+    >;
+    tournament_status: Schema.Attribute.Enumeration<
+      ['pending', 'start', 'end']
+    >;
+    type: Schema.Attribute.Enumeration<['single', 'double']>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -1102,7 +1178,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1134,6 +1209,10 @@ export interface PluginUsersPermissionsUser
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    tournament_players: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament-player.tournament-player'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1164,6 +1243,8 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::landing-page.landing-page': ApiLandingPageLandingPage;
       'api::spacial-blog.spacial-blog': ApiSpacialBlogSpacialBlog;
+      'api::tournament-player.tournament-player': ApiTournamentPlayerTournamentPlayer;
+      'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

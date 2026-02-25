@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tournaments",
+  "info": {
+    "singularName": "tournament",
+    "pluralName": "tournaments",
+    "displayName": "tournament"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "single",
+        "double"
+      ]
+    },
+    "format": {
+      "type": "enumeration",
+      "enum": [
+        "round_robin ",
+        "knockout ",
+        "americano"
+      ]
+    },
+    "tournament_status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "start",
+        "end"
+      ]
+    },
+    "tournament_players": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::tournament-player.tournament-player",
+      "mappedBy": "tournament_id"
+    }
+  }
+}
