@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "teams",
+  "info": {
+    "singularName": "team",
+    "pluralName": "teams",
+    "displayName": "team"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tournament_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "teams"
+    },
+    "team_no": {
+      "type": "string"
+    },
+    "team_players": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::team-player.team-player",
+      "mappedBy": "team_id"
+    },
+    "match_team_a": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::match.match",
+      "mappedBy": "team_a_id"
+    },
+    "match_team_b": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::match.match",
+      "mappedBy": "team_b_id"
+    },
+    "match_winner": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::match.match",
+      "mappedBy": "team_winner"
+    }
+  }
+}

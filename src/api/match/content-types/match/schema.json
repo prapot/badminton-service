@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "matches",
+  "info": {
+    "singularName": "match",
+    "pluralName": "matches",
+    "displayName": "match"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tournament_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "matches"
+    },
+    "round": {
+      "type": "integer"
+    },
+    "match_no": {
+      "type": "integer"
+    },
+    "team_a_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::team.team",
+      "inversedBy": "match_team_a"
+    },
+    "team_b_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::team.team",
+      "inversedBy": "match_team_b"
+    },
+    "score_a": {
+      "type": "integer"
+    },
+    "score_b": {
+      "type": "integer"
+    },
+    "team_winner": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::team.team",
+      "inversedBy": "match_winner"
+    },
+    "match_status": {
+      "type": "enumeration",
+      "enum": [
+        "upcoming",
+        "live",
+        "done"
+      ]
+    }
+  }
+}

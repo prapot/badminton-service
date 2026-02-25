@@ -4,10 +4,10 @@
   "info": {
     "singularName": "tournament-player",
     "pluralName": "tournament-players",
-    "displayName": "tournament_player"
+    "displayName": "Tournament Player"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -17,7 +17,7 @@
       "target": "api::tournament.tournament",
       "inversedBy": "tournament_players"
     },
-    "users_permissions_user": {
+    "user": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",

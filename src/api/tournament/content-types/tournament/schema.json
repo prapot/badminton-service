@@ -24,23 +24,35 @@
     "format": {
       "type": "enumeration",
       "enum": [
-        "round_robin ",
-        "knockout ",
+        "round_robin",
+        "knockout",
         "americano"
       ]
     },
     "tournament_status": {
       "type": "enumeration",
       "enum": [
-        "pending",
-        "start",
-        "end"
+        "upcoming",
+        "ongoing",
+        "completed"
       ]
     },
     "tournament_players": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::tournament-player.tournament-player",
+      "mappedBy": "tournament_id"
+    },
+    "teams": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::team.team",
+      "mappedBy": "tournament_id"
+    },
+    "matches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match.match",
       "mappedBy": "tournament_id"
     }
   }

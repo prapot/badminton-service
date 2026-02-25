@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "team_players",
+  "info": {
+    "singularName": "team-player",
+    "pluralName": "team-players",
+    "displayName": "team_player"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "team_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::team.team",
+      "inversedBy": "team_players"
+    },
+    "user_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "team_players"
+    }
+  }
+}

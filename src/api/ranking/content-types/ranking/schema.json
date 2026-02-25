@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rankings",
+  "info": {
+    "singularName": "ranking",
+    "pluralName": "rankings",
+    "displayName": "ranking"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "ranking"
+    },
+    "season": {
+      "type": "integer"
+    },
+    "match_played": {
+      "type": "integer",
+      "default": 0
+    },
+    "win": {
+      "type": "integer",
+      "default": 0
+    },
+    "lose": {
+      "type": "integer",
+      "default": 0
+    },
+    "point_for": {
+      "type": "integer",
+      "default": 0
+    },
+    "point_against": {
+      "type": "integer",
+      "default": 0
+    },
+    "win_streak": {
+      "type": "integer",
+      "default": 0
+    },
+    "mmr": {
+      "type": "integer",
+      "default": 1200
+    }
+  }
+}

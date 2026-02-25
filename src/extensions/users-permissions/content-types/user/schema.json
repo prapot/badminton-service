@@ -66,11 +66,31 @@
       "inversedBy": "users",
       "configurable": false
     },
+    "team_players": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::team-player.team-player",
+      "mappedBy": "user_id"
+    },
+    "ranking": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::ranking.ranking",
+      "mappedBy": "user_id"
+    },
     "tournament_players": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::tournament-player.tournament-player",
-      "mappedBy": "users_permissions_user"
+      "mappedBy": "user"
+    },
+    "picture": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
     }
   }
 }
