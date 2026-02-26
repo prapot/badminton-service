@@ -3,7 +3,7 @@ set -e
 
 # ===== ตั้งค่าตรงนี้ =====
 SERVER_USER="root"
-SERVER_IP="your-server-ip"          # แก้เป็น IP จริง
+SERVER_IP="206.189.88.42"          # แก้เป็น IP จริง
 SERVER_PATH="/root/www/badminton-service"
 PM2_APP="badminton-service"
 # =========================
