@@ -617,6 +617,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     match_status: Schema.Attribute.Enumeration<['upcoming', 'live', 'done']>;
     publishedAt: Schema.Attribute.DateTime;
     round: Schema.Attribute.Integer;
+    scheduledAt: Schema.Attribute.DateTime;
     score_a: Schema.Attribute.Integer;
     score_b: Schema.Attribute.Integer;
     team_a_id: Schema.Attribute.Relation<'oneToOne', 'api::team.team'>;
@@ -626,6 +627,33 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::tournament.tournament'
     >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiProfileProfile extends Struct.SingleTypeSchema {
+  collectionName: 'profiles';
+  info: {
+    displayName: 'Profile';
+    pluralName: 'profiles';
+    singularName: 'profile';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::profile.profile'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1348,6 +1376,7 @@ declare module '@strapi/strapi' {
       'api::landing-page.landing-page': ApiLandingPageLandingPage;
       'api::match-history.match-history': ApiMatchHistoryMatchHistory;
       'api::match.match': ApiMatchMatch;
+      'api::profile.profile': ApiProfileProfile;
       'api::ranking.ranking': ApiRankingRanking;
       'api::team-player.team-player': ApiTeamPlayerTeamPlayer;
       'api::team.team': ApiTeamTeam;

@@ -1,0 +1,14 @@
+{
+    "kind": "singleType",
+    "collectionName": "profiles",
+    "info": {
+        "singularName": "profile",
+        "pluralName": "profiles",
+        "displayName": "Profile"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {}
+}
