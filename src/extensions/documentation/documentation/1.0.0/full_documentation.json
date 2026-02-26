@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-02-26T11:23:22.873Z"
+    "x-generation-date": "2026-02-26T18:10:08.016Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -11281,6 +11281,13 @@
                 "type": "string",
                 "format": "date"
               },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "casual",
+                  "ranking"
+                ]
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -12839,6 +12846,13 @@
                               "startDate": {
                                 "type": "string",
                                 "format": "date"
+                              },
+                              "mode": {
+                                "type": "string",
+                                "enum": [
+                                  "casual",
+                                  "ranking"
+                                ]
                               },
                               "createdAt": {
                                 "type": "string",
@@ -15832,6 +15846,13 @@
                             "startDate": {
                               "type": "string",
                               "format": "date"
+                            },
+                            "mode": {
+                              "type": "string",
+                              "enum": [
+                                "casual",
+                                "ranking"
+                              ]
                             },
                             "createdAt": {
                               "type": "string",
@@ -19259,6 +19280,13 @@
                 "type": "string",
                 "format": "date"
               },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "casual",
+                  "ranking"
+                ]
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -21588,6 +21616,13 @@
                     "type": "string",
                     "format": "date"
                   },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "casual",
+                      "ranking"
+                    ]
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -21924,6 +21959,9 @@
         ],
         "properties": {
           "data": {
+            "required": [
+              "mode"
+            ],
             "type": "object",
             "properties": {
               "name": {
@@ -21998,6 +22036,13 @@
                 "type": "string",
                 "format": "date"
               },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "casual",
+                  "ranking"
+                ]
+              },
               "locale": {
                 "type": "string"
               },
@@ -22056,6 +22101,9 @@
       },
       "Tournament": {
         "type": "object",
+        "required": [
+          "mode"
+        ],
         "properties": {
           "id": {
             "oneOf": [
@@ -24144,6 +24192,13 @@
                       "type": "string",
                       "format": "date"
                     },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "casual",
+                        "ranking"
+                      ]
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -24359,6 +24414,13 @@
           "startDate": {
             "type": "string",
             "format": "date"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "casual",
+              "ranking"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -26691,6 +26753,13 @@
               "startDate": {
                 "type": "string",
                 "format": "date"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "casual",
+                  "ranking"
+                ]
               },
               "createdAt": {
                 "type": "string",

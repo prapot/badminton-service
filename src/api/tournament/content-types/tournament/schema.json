@@ -57,6 +57,14 @@
     },
     "startDate": {
       "type": "date"
+    },
+    "mode": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "casual",
+        "ranking"
+      ]
     }
   }
 }
