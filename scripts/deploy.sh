@@ -21,8 +21,7 @@ rsync -avz --progress \
   ./ "$SERVER_USER@$SERVER_IP:$SERVER_PATH/"
 
 echo "🚀 Installing deps & reloading PM2 on server..."
-ssh "$SERVER_USER@$SERVER_IP" bash << EOF
-  export PATH=\$PATH:/usr/bin:/usr/local/bin
+ssh "$SERVER_USER@$SERVER_IP" bash -l << EOF
   cd $SERVER_PATH
   npm install --omit=dev
   pm2 reload $PM2_APP || pm2 start ecosystem.config.js --env production
