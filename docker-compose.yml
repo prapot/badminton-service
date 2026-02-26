@@ -1,27 +1,6 @@
 version: "3.8"
 
 services:
-  strapi:
-    container_name: badminton-strapi
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: badminton-strapi:latest
-    restart: always
-    env_file: .env
-    environment:
-      DATABASE_CLIENT: postgres
-      DATABASE_HOST: host.containers.internal
-      DATABASE_PORT: 5432
-      DATABASE_NAME: ${DATABASE_NAME}
-      DATABASE_USERNAME: ${DATABASE_USERNAME}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      NODE_ENV: production
-    ports:
-      - "0.0.0.0:1337:1337"
-    depends_on:
-      - postgres
-
   postgres:
     image: postgres:15
     container_name: postgres-strapi
