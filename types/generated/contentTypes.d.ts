@@ -802,6 +802,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    startDate: Schema.Attribute.Date;
     teams: Schema.Attribute.Relation<'oneToMany', 'api::team.team'>;
     tournament_players: Schema.Attribute.Relation<
       'oneToMany',

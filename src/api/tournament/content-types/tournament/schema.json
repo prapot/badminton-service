@@ -54,6 +54,9 @@
       "relation": "oneToMany",
       "target": "api::match.match",
       "mappedBy": "tournament_id"
+    },
+    "startDate": {
+      "type": "date"
     }
   }
 }

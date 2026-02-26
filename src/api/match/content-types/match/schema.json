@@ -60,6 +60,9 @@
       "relation": "manyToMany",
       "target": "api::match-history.match-history",
       "mappedBy": "matches"
+    },
+    "scheduledAt": {
+      "type": "datetime"
     }
   }
 }
