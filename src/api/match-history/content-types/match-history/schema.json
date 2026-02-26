@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "match_histories",
+  "info": {
+    "singularName": "match-history",
+    "pluralName": "match-histories",
+    "displayName": "match_history"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "users": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "match_histories"
+    },
+    "matches": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::match.match",
+      "inversedBy": "match_histories"
+    },
+    "old_mmr": {
+      "type": "integer",
+      "default": 0
+    },
+    "new_mmr": {
+      "type": "integer",
+      "default": 0
+    },
+    "mmr_change": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

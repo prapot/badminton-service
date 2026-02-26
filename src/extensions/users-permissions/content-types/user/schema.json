@@ -91,6 +91,12 @@
         "images",
         "files"
       ]
+    },
+    "match_histories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::match-history.match-history",
+      "mappedBy": "users"
     }
   }
 }

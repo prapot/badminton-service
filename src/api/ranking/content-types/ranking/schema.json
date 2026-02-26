@@ -46,7 +46,7 @@
     },
     "mmr": {
       "type": "integer",
-      "default": 1200
+      "default": 1500
     }
   }
 }

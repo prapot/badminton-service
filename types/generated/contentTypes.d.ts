@@ -496,65 +496,6 @@ export interface ApiAboutAbout extends Struct.SingleTypeSchema {
   };
 }
 
-export interface ApiAuthurAuthur extends Struct.CollectionTypeSchema {
-  collectionName: 'authurs';
-  info: {
-    displayName: 'author';
-    pluralName: 'authurs';
-    singularName: 'authur';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    blogs: Schema.Attribute.Relation<'oneToMany', 'api::blog.blog'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::authur.authur'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    publisher: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
-  collectionName: 'blogs';
-  info: {
-    displayName: 'Blog';
-    pluralName: 'blogs';
-    singularName: 'blog';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    authur: Schema.Attribute.Relation<'manyToOne', 'api::authur.authur'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    detail: Schema.Attribute.Blocks;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'api::blog.blog'> &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    thumbnail: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -615,6 +556,42 @@ export interface ApiLandingPageLandingPage extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiMatchHistoryMatchHistory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'match_histories';
+  info: {
+    displayName: 'match_history';
+    pluralName: 'match-histories';
+    singularName: 'match-history';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::match-history.match-history'
+    > &
+      Schema.Attribute.Private;
+    matches: Schema.Attribute.Relation<'manyToMany', 'api::match.match'>;
+    mmr_change: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    new_mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    old_mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
@@ -632,6 +609,10 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;
+    match_histories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::match-history.match-history'
+    >;
     match_no: Schema.Attribute.Integer;
     match_status: Schema.Attribute.Enumeration<['upcoming', 'live', 'done']>;
     publishedAt: Schema.Attribute.DateTime;
@@ -673,7 +654,7 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     lose: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     match_played: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1200>;
+    mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1500>;
     point_against: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     point_for: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
@@ -687,37 +668,6 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
     >;
     win: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     win_streak: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-  };
-}
-
-export interface ApiSpacialBlogSpacialBlog extends Struct.CollectionTypeSchema {
-  collectionName: 'spacial_blogs';
-  info: {
-    displayName: 'special-blog';
-    pluralName: 'spacial-blogs';
-    singularName: 'spacial-blog';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    detail: Schema.Attribute.Blocks;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::spacial-blog.spacial-blog'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    thumbnail: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
   };
 }
 
@@ -1342,6 +1292,10 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    match_histories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::match-history.match-history'
+    >;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1389,13 +1343,11 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
-      'api::authur.authur': ApiAuthurAuthur;
-      'api::blog.blog': ApiBlogBlog;
       'api::global.global': ApiGlobalGlobal;
       'api::landing-page.landing-page': ApiLandingPageLandingPage;
+      'api::match-history.match-history': ApiMatchHistoryMatchHistory;
       'api::match.match': ApiMatchMatch;
       'api::ranking.ranking': ApiRankingRanking;
-      'api::spacial-blog.spacial-blog': ApiSpacialBlogSpacialBlog;
       'api::team-player.team-player': ApiTeamPlayerTeamPlayer;
       'api::team.team': ApiTeamTeam;
       'api::tournament-player.tournament-player': ApiTournamentPlayerTournamentPlayer;
