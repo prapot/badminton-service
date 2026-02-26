@@ -18,7 +18,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       NODE_ENV: production
     ports:
-      - "1337:1337"
+      - "0.0.0.0:1337:1337"
     depends_on:
       - postgres
 
