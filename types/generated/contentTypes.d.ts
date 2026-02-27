@@ -592,6 +592,40 @@ export interface ApiMatchHistoryMatchHistory
   };
 }
 
+export interface ApiMatchPlayerScoreMatchPlayerScore
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'match_player_scores';
+  info: {
+    displayName: 'match_player_score';
+    pluralName: 'match-player-scores';
+    singularName: 'match-player-score';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::match-player-score.match-player-score'
+    > &
+      Schema.Attribute.Private;
+    match: Schema.Attribute.Relation<'manyToOne', 'api::match.match'>;
+    publishedAt: Schema.Attribute.DateTime;
+    score: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
@@ -614,6 +648,10 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'api::match-history.match-history'
     >;
     match_no: Schema.Attribute.Integer;
+    match_player_scores: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::match-player-score.match-player-score'
+    >;
     match_status: Schema.Attribute.Enumeration<['upcoming', 'live', 'done']>;
     publishedAt: Schema.Attribute.DateTime;
     round: Schema.Attribute.Integer;
@@ -1327,6 +1365,10 @@ export interface PluginUsersPermissionsUser
       'manyToMany',
       'api::match-history.match-history'
     >;
+    match_player_score: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::match-player-score.match-player-score'
+    >;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1377,6 +1419,7 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::landing-page.landing-page': ApiLandingPageLandingPage;
       'api::match-history.match-history': ApiMatchHistoryMatchHistory;
+      'api::match-player-score.match-player-score': ApiMatchPlayerScoreMatchPlayerScore;
       'api::match.match': ApiMatchMatch;
       'api::profile.profile': ApiProfileProfile;
       'api::ranking.ranking': ApiRankingRanking;

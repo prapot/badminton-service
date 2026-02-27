@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "match_player_scores",
+  "info": {
+    "singularName": "match-player-score",
+    "pluralName": "match-player-scores",
+    "displayName": "match_player_score"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "match": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::match.match",
+      "inversedBy": "match_player_scores"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "match_player_score"
+    },
+    "score": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

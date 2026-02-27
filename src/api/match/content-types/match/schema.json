@@ -63,6 +63,12 @@
     },
     "scheduledAt": {
       "type": "datetime"
+    },
+    "match_player_scores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match-player-score.match-player-score",
+      "mappedBy": "match"
     }
   }
 }

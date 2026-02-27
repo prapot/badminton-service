@@ -97,6 +97,12 @@
       "relation": "manyToMany",
       "target": "api::match-history.match-history",
       "mappedBy": "users"
+    },
+    "match_player_score": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::match-player-score.match-player-score",
+      "mappedBy": "user"
     }
   }
 }
