@@ -50,6 +50,7 @@
     "match_status": {
       "type": "enumeration",
       "enum": [
+        "cancelled",
         "upcoming",
         "live",
         "done"

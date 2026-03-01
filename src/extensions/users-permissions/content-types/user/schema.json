@@ -103,6 +103,12 @@
       "relation": "oneToOne",
       "target": "api::match-player-score.match-player-score",
       "mappedBy": "user"
+    },
+    "tournaments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::tournament.tournament",
+      "mappedBy": "user_created"
     }
   }
 }

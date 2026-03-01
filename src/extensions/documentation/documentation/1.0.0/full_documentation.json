@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-02-27T01:34:16.969Z"
+    "x-generation-date": "2026-03-01T16:07:02.833Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -9551,6 +9551,7 @@
               "match_status": {
                 "type": "string",
                 "enum": [
+                  "cancelled",
                   "upcoming",
                   "live",
                   "done"
@@ -10532,6 +10533,7 @@
                                       "match_status": {
                                         "type": "string",
                                         "enum": [
+                                          "cancelled",
                                           "upcoming",
                                           "live",
                                           "done"
@@ -11753,6 +11755,27 @@
                             }
                           }
                         },
+                        "tournaments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "documentId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -11958,6 +11981,24 @@
                   "ranking"
                 ]
               },
+              "user_created": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -12101,6 +12142,7 @@
           "match_status": {
             "type": "string",
             "enum": [
+              "cancelled",
               "upcoming",
               "live",
               "done"
@@ -13306,6 +13348,7 @@
                                     "match_status": {
                                       "type": "string",
                                       "enum": [
+                                        "cancelled",
                                         "upcoming",
                                         "live",
                                         "done"
@@ -13676,6 +13719,24 @@
                                   "casual",
                                   "ranking"
                                 ]
+                              },
+                              "user_created": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
                               },
                               "createdAt": {
                                 "type": "string",
@@ -14652,6 +14713,27 @@
                     },
                     "documentId": {
                       "type": "string"
+                    }
+                  }
+                },
+                "tournaments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
                     }
                   }
                 },
@@ -16850,6 +16932,27 @@
                                 }
                               }
                             },
+                            "tournaments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
                             "createdAt": {
                               "type": "string",
                               "format": "date-time"
@@ -17055,6 +17158,24 @@
                       "ranking"
                     ]
                   },
+                  "user_created": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -17198,6 +17319,7 @@
               "match_status": {
                 "type": "string",
                 "enum": [
+                  "cancelled",
                   "upcoming",
                   "live",
                   "done"
@@ -19040,6 +19162,7 @@
                                   "match_status": {
                                     "type": "string",
                                     "enum": [
+                                      "cancelled",
                                       "upcoming",
                                       "live",
                                       "done"
@@ -19410,6 +19533,24 @@
                                 "casual",
                                 "ranking"
                               ]
+                            },
+                            "user_created": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
+                              }
                             },
                             "createdAt": {
                               "type": "string",
@@ -20386,6 +20527,27 @@
                   },
                   "documentId": {
                     "type": "string"
+                  }
+                }
+              },
+              "tournaments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
                   }
                 }
               },
@@ -21586,6 +21748,7 @@
                                       "match_status": {
                                         "type": "string",
                                         "enum": [
+                                          "cancelled",
                                           "upcoming",
                                           "live",
                                           "done"
@@ -22807,6 +22970,27 @@
                             }
                           }
                         },
+                        "tournaments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "documentId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -23011,6 +23195,24 @@
                   "casual",
                   "ranking"
                 ]
+              },
+              "user_created": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -24954,6 +25156,7 @@
                                         "match_status": {
                                           "type": "string",
                                           "enum": [
+                                            "cancelled",
                                             "upcoming",
                                             "live",
                                             "done"
@@ -25293,6 +25496,27 @@
                                 }
                               }
                             },
+                            "tournaments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
                             "createdAt": {
                               "type": "string",
                               "format": "date-time"
@@ -25497,6 +25721,24 @@
                       "casual",
                       "ranking"
                     ]
+                  },
+                  "user_created": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
                   },
                   "createdAt": {
                     "type": "string",
@@ -25917,6 +26159,17 @@
                   "casual",
                   "ranking"
                 ]
+              },
+              "user_created": {
+                "oneOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "example": "string or id"
               },
               "locale": {
                 "type": "string"
@@ -27575,6 +27828,7 @@
                                                 "match_status": {
                                                   "type": "string",
                                                   "enum": [
+                                                    "cancelled",
                                                     "upcoming",
                                                     "live",
                                                     "done"
@@ -27914,6 +28168,27 @@
                                         }
                                       }
                                     },
+                                    "tournaments": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "oneOf": [
+                                              {
+                                                "type": "string"
+                                              },
+                                              {
+                                                "type": "number"
+                                              }
+                                            ]
+                                          },
+                                          "documentId": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      }
+                                    },
                                     "createdAt": {
                                       "type": "string",
                                       "format": "date-time"
@@ -28224,6 +28499,24 @@
                         "ranking"
                       ]
                     },
+                    "user_created": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -28446,6 +28739,24 @@
               "casual",
               "ranking"
             ]
+          },
+          "user_created": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "documentId": {
+                "type": "string"
+              }
+            }
           },
           "createdAt": {
             "type": "string",
@@ -29510,6 +29821,7 @@
                                       "match_status": {
                                         "type": "string",
                                         "enum": [
+                                          "cancelled",
                                           "upcoming",
                                           "live",
                                           "done"
@@ -30731,6 +31043,27 @@
                             }
                           }
                         },
+                        "tournaments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "documentId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -30935,6 +31268,24 @@
                   "casual",
                   "ranking"
                 ]
+              },
+              "user_created": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",

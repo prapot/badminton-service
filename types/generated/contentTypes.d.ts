@@ -652,7 +652,9 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::match-player-score.match-player-score'
     >;
-    match_status: Schema.Attribute.Enumeration<['upcoming', 'live', 'done']>;
+    match_status: Schema.Attribute.Enumeration<
+      ['cancelled', 'upcoming', 'live', 'done']
+    >;
     publishedAt: Schema.Attribute.DateTime;
     round: Schema.Attribute.Integer;
     scheduledAt: Schema.Attribute.DateTime;
@@ -883,6 +885,10 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    user_created: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -1390,6 +1396,10 @@ export interface PluginUsersPermissionsUser
     tournament_players: Schema.Attribute.Relation<
       'oneToMany',
       'api::tournament-player.tournament-player'
+    >;
+    tournaments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament.tournament'
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

@@ -15,6 +15,14 @@ export default {
             config: {
                 auth: false,
             },
+        },
+        {
+            method: 'POST',
+            path: '/rankings/revert-match',
+            handler: 'ranking.revertMatch',
+            config: {
+                auth: false,
+            },
         }
     ],
 };

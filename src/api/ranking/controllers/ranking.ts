@@ -213,6 +213,94 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
             } catch (err) {
                 return ctx.internalServerError(err.message);
             }
+        },
+
+        async revertMatch(ctx) {
+            const requestBody = ctx.request.body || {};
+            const body = requestBody.data || requestBody;
+            const { match_id } = body;
+
+            if (!match_id) {
+                return ctx.badRequest('match_id is required');
+            }
+
+            try {
+                // 1. Find the match to get the scores and teams
+                const match = await strapi.documents('api::match.match').findOne({
+                    documentId: match_id,
+                    populate: ['team_a_id', 'team_b_id', 'team_a_id.team_players', 'team_b_id.team_players', 'team_a_id.team_players.user_id', 'team_b_id.team_players.user_id']
+                });
+
+                if (!match) {
+                    return ctx.notFound('Match not found');
+                }
+
+                // 2. Find all match history records for this match
+                const histories = await strapi.documents('api::match-history.match-history').findMany({
+                    filters: {
+                        matches: {
+                            documentId: match_id
+                        }
+                    },
+                    populate: ['users']
+                });
+
+                if (histories.length === 0) {
+                    return ctx.send({ message: 'No history found to revert', reverted: 0 });
+                }
+
+                const revertedResults = await Promise.all(histories.map(async (history) => {
+                    const user = history.users?.[0];
+                    if (!user) return null;
+
+                    const ranking = await strapi.documents('api::ranking.ranking').findFirst({
+                        filters: { user_id: user.id as any }
+                    });
+
+                    if (!ranking) return null;
+
+                    // Determine if the user was winner or loser based on mmr_change
+                    const wasWinner = history.mmr_change > 0;
+                    const wasLoser = history.mmr_change < 0;
+
+                    // Determine user's score and opponent's score based on team membership
+                    const isTeamA = match.team_a_id?.team_players?.some(tp => tp.user_id?.id === user.id);
+                    const userScore = isTeamA ? Number(match.score_a) : Number(match.score_b);
+                    const opponentScore = isTeamA ? Number(match.score_b) : Number(match.score_a);
+
+                    // Revert the ranking stats
+                    const updatedRanking = await strapi.documents('api::ranking.ranking').update({
+                        documentId: ranking.documentId,
+                        data: {
+                            mmr: history.old_mmr,
+                            match_played: Math.max(0, (ranking.match_played || 0) - 1),
+                            win: wasWinner ? Math.max(0, (ranking.win || 0) - 1) : ranking.win,
+                            lose: wasLoser ? Math.max(0, (ranking.lose || 0) - 1) : ranking.lose,
+                            // win_streak is hard to revert perfectly without re-calculating everything, 
+                            // but we can at least decrement it if they were winners.
+                            win_streak: wasWinner ? Math.max(0, (ranking.win_streak || 0) - 1) : ranking.win_streak,
+                            point_for: Math.max(0, (ranking.point_for || 0) - userScore),
+                            point_against: Math.max(0, (ranking.point_against || 0) - opponentScore),
+                        },
+                        status: 'published'
+                    });
+
+                    // Delete this history record
+                    await strapi.documents('api::match-history.match-history').delete({
+                        documentId: history.documentId
+                    });
+
+                    return updatedRanking;
+                }));
+
+                return ctx.send({
+                    message: 'Match stats reverted successfully',
+                    revertedCount: revertedResults.filter(r => r !== null).length
+                });
+
+            } catch (err) {
+                return ctx.internalServerError(err.message);
+            }
         }
     };
 });
