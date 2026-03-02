@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-01T16:07:02.833Z"
+    "x-generation-date": "2026-03-02T13:37:59.212Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -9589,6 +9589,13 @@
                   "example": "string or id"
                 }
               },
+              "first_serve": {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
               "locale": {
                 "type": "string"
               },
@@ -10818,6 +10825,13 @@
                                             }
                                           }
                                         }
+                                      },
+                                      "first_serve": {
+                                        "type": "string",
+                                        "enum": [
+                                          "A",
+                                          "B"
+                                        ]
                                       },
                                       "createdAt": {
                                         "type": "string",
@@ -12193,6 +12207,13 @@
                 }
               }
             }
+          },
+          "first_serve": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -13633,6 +13654,13 @@
                                           }
                                         }
                                       }
+                                    },
+                                    "first_serve": {
+                                      "type": "string",
+                                      "enum": [
+                                        "A",
+                                        "B"
+                                      ]
                                     },
                                     "createdAt": {
                                       "type": "string",
@@ -17371,6 +17399,13 @@
                   }
                 }
               },
+              "first_serve": {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B"
+                ]
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -19447,6 +19482,13 @@
                                         }
                                       }
                                     }
+                                  },
+                                  "first_serve": {
+                                    "type": "string",
+                                    "enum": [
+                                      "A",
+                                      "B"
+                                    ]
                                   },
                                   "createdAt": {
                                     "type": "string",
@@ -22033,6 +22075,13 @@
                                             }
                                           }
                                         }
+                                      },
+                                      "first_serve": {
+                                        "type": "string",
+                                        "enum": [
+                                          "A",
+                                          "B"
+                                        ]
                                       },
                                       "createdAt": {
                                         "type": "string",
@@ -25319,6 +25368,13 @@
                                             }
                                           }
                                         },
+                                        "first_serve": {
+                                          "type": "string",
+                                          "enum": [
+                                            "A",
+                                            "B"
+                                          ]
+                                        },
                                         "createdAt": {
                                           "type": "string",
                                           "format": "date-time"
@@ -27991,6 +28047,13 @@
                                                     }
                                                   }
                                                 },
+                                                "first_serve": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "A",
+                                                    "B"
+                                                  ]
+                                                },
                                                 "createdAt": {
                                                   "type": "string",
                                                   "format": "date-time"
@@ -30106,6 +30169,13 @@
                                             }
                                           }
                                         }
+                                      },
+                                      "first_serve": {
+                                        "type": "string",
+                                        "enum": [
+                                          "A",
+                                          "B"
+                                        ]
                                       },
                                       "createdAt": {
                                         "type": "string",

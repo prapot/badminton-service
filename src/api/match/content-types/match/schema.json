@@ -70,6 +70,13 @@
       "relation": "oneToMany",
       "target": "api::match-player-score.match-player-score",
       "mappedBy": "match"
+    },
+    "first_serve": {
+      "type": "enumeration",
+      "enum": [
+        "A",
+        "B"
+      ]
     }
   }
 }
