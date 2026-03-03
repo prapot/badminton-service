@@ -582,6 +582,7 @@ export interface ApiMatchHistoryMatchHistory
     new_mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     old_mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
+    ranking: Schema.Attribute.Relation<'manyToOne', 'api::ranking.ranking'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -722,21 +723,57 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     lose: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    match_histories: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::match-history.match-history'
+    >;
     match_played: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1500>;
     point_against: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     point_for: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
-    season: Schema.Attribute.Integer;
+    season: Schema.Attribute.Relation<'manyToOne', 'api::season.season'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     user_id: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     win: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     win_streak: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+  };
+}
+
+export interface ApiSeasonSeason extends Struct.CollectionTypeSchema {
+  collectionName: 'seasons';
+  info: {
+    displayName: 'season';
+    pluralName: 'seasons';
+    singularName: 'season';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    end_date: Schema.Attribute.Date;
+    is_active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::season.season'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    rankings: Schema.Attribute.Relation<'oneToMany', 'api::ranking.ranking'>;
+    start_date: Schema.Attribute.Date;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1384,7 +1421,7 @@ export interface PluginUsersPermissionsUser
     picture: Schema.Attribute.Media<'images' | 'files'>;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    ranking: Schema.Attribute.Relation<'oneToOne', 'api::ranking.ranking'>;
+    rankings: Schema.Attribute.Relation<'oneToMany', 'api::ranking.ranking'>;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
     role: Schema.Attribute.Relation<
       'manyToOne',
@@ -1434,6 +1471,7 @@ declare module '@strapi/strapi' {
       'api::match.match': ApiMatchMatch;
       'api::profile.profile': ApiProfileProfile;
       'api::ranking.ranking': ApiRankingRanking;
+      'api::season.season': ApiSeasonSeason;
       'api::team-player.team-player': ApiTeamPlayerTeamPlayer;
       'api::team.team': ApiTeamTeam;
       'api::tournament-player.tournament-player': ApiTournamentPlayerTournamentPlayer;

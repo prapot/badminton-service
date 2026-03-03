@@ -13,12 +13,15 @@
   "attributes": {
     "user_id": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "ranking"
+      "inversedBy": "rankings"
     },
     "season": {
-      "type": "integer"
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::season.season",
+      "inversedBy": "rankings"
     },
     "match_played": {
       "type": "integer",
@@ -47,6 +50,12 @@
     "mmr": {
       "type": "integer",
       "default": 1500
+    },
+    "match_histories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match-history.match-history",
+      "mappedBy": "ranking"
     }
   }
 }

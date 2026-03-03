@@ -34,6 +34,12 @@
     "mmr_change": {
       "type": "integer",
       "default": 0
+    },
+    "ranking": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking.ranking",
+      "inversedBy": "match_histories"
     }
   }
 }

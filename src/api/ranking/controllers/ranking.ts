@@ -12,8 +12,6 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
         const expectedWinner = 1 / (1 + Math.pow(10, (ratingLoser - ratingWinner) / 400));
 
         // Margin of Victory multiplier
-        // A safety check ensures difference is at least 1 (e.g. 21-20 -> diff 1, multiplier ln(2) ~ 0.69)
-        // If difference is 7 (e.g. 21-14 -> diff 7, multiplier ln(8) ~ 2.07)
         const pointDiff = Math.max(scoreWinner - scoreLoser, 1);
         const movMultiplier = Math.log(pointDiff + 1);
 
@@ -26,9 +24,44 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
         };
     }
 
+
+    async function getOrCreateRanking(userId: any, activeSeason: any) {
+        let ranking = await strapi.documents('api::ranking.ranking').findFirst({
+            filters: {
+                user_id: userId,
+                season: {
+                    documentId: activeSeason.documentId
+                }
+            },
+        });
+
+        if (!ranking) {
+            // New season for this user - reset stats but carry over MMR
+            const lastRanking = await strapi.documents('api::ranking.ranking').findFirst({
+                filters: { user_id: userId },
+                sort: 'createdAt:desc'
+            });
+
+            ranking = await strapi.documents('api::ranking.ranking').create({
+                data: {
+                    user_id: userId,
+                    season: activeSeason.documentId,
+                    mmr: lastRanking ? lastRanking.mmr : 1500,
+                    match_played: 0,
+                    win: 0,
+                    lose: 0,
+                    win_streak: 0,
+                    point_for: 0,
+                    point_against: 0
+                },
+                status: 'published'
+            });
+        }
+        return ranking;
+    }
+
     return {
         async upsert(ctx) {
-            // Attempt to get data from ctx.request.body.data or fallback to ctx.request.body
             const requestBody = ctx.request.body || {};
             const body = requestBody.data || requestBody;
             const { user_id, ...updateData } = body;
@@ -38,13 +71,19 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
             }
 
             try {
-                // Find existing ranking for this user_id
+                // Auto-manage season
+                const activeSeason = await strapi.service('api::ranking.ranking').getOrCreateCurrentSeason();
+
                 const existingRanking = await strapi.documents('api::ranking.ranking').findFirst({
-                    filters: { user_id: user_id },
+                    filters: {
+                        user_id: user_id,
+                        season: {
+                            documentId: activeSeason.documentId
+                        }
+                    },
                 });
 
                 if (existingRanking) {
-                    // Update existing ranking
                     const updatedRanking = await strapi.documents('api::ranking.ranking').update({
                         documentId: existingRanking.documentId,
                         data: updateData,
@@ -52,9 +91,8 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                     });
                     return ctx.send({ data: updatedRanking });
                 } else {
-                    // Create new ranking
                     const newRanking = await strapi.documents('api::ranking.ranking').create({
-                        data: { ...updateData, user_id: user_id },
+                        data: { ...updateData, user_id: user_id, season: activeSeason.documentId },
                         status: 'published'
                     });
                     return ctx.send({ data: newRanking });
@@ -73,54 +111,16 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                 return ctx.badRequest('winners, losers, winner_score, loser_score, and match_id are required');
             }
 
-            if (winners === losers) {
-                return ctx.badRequest('winners and losers cannot be the same user');
-            }
-
-            if (typeof winner_score !== 'number' || typeof loser_score !== 'number') {
-                return ctx.badRequest('winner_score and loser_score must be numbers');
-            }
-
-            if (winner_score < 0 || loser_score < 0) {
-                return ctx.badRequest('scores cannot be negative');
-            }
-
-            if (winner_score <= loser_score) {
-                return ctx.badRequest('winner_score must be strictly greater than loser_score');
-            }
-
             try {
-                // Helper to get or create ranking
-                const getOrCreateRanking = async (userId: any) => {
-                    let ranking = await strapi.documents('api::ranking.ranking').findFirst({
-                        filters: { user_id: userId },
-                    });
-                    if (!ranking) {
-                        ranking = await strapi.documents('api::ranking.ranking').create({
-                            data: {
-                                user_id: userId,
-                                mmr: 1500,
-                                match_played: 0,
-                                win: 0,
-                                lose: 0,
-                                win_streak: 0,
-                                point_for: 0,
-                                point_against: 0
-                            },
-                            status: 'published'
-                        });
-                    }
-                    return ranking;
-                };
+                // Auto-manage season
+                const activeSeason = await strapi.service('api::ranking.ranking').getOrCreateCurrentSeason();
 
-                const winnerRankings = await Promise.all(winners.map(id => getOrCreateRanking(id)));
-                const loserRankings = await Promise.all(losers.map(id => getOrCreateRanking(id)));
+                const winnerRankings = await Promise.all(winners.map(id => getOrCreateRanking(id, activeSeason)));
+                const loserRankings = await Promise.all(losers.map(id => getOrCreateRanking(id, activeSeason)));
 
-                // Calculate average team MMR
                 const winnerTeamMmr = winnerRankings.reduce((sum, r) => sum + r.mmr, 0) / winnerRankings.length;
                 const loserTeamMmr = loserRankings.reduce((sum, r) => sum + r.mmr, 0) / loserRankings.length;
 
-                // Calculate new MMRs using the scores based on team averages
                 const { newWinnerMmr: expectedWinnerTeamMmr, newLoserMmr: expectedLoserTeamMmr } = calculateBadmintonElo(
                     winnerTeamMmr,
                     loserTeamMmr,
@@ -128,12 +128,9 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                     Number(loser_score)
                 );
 
-                // The change is distributed equally (or appropriately) to all team members
-                // We use the delta to apply to individual MMRs instead of assigning the team average
                 const winnerMmrDelta = expectedWinnerTeamMmr - winnerTeamMmr;
                 const loserMmrDelta = expectedLoserTeamMmr - loserTeamMmr;
 
-                // Update winners
                 const updatedWinners = await Promise.all(winnerRankings.map(async (ranking, index) => {
                     const userId = winners[index];
                     const oldMmr = ranking.mmr;
@@ -153,22 +150,21 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                         status: 'published',
                     });
 
-                    // Create match history
                     await strapi.documents('api::match-history.match-history').create({
                         data: {
                             users: [userId],
                             matches: match_id ? [match_id] : [],
                             old_mmr: oldMmr,
                             new_mmr: newMmr,
-                            mmr_change: changeMmr
-                        },
+                            mmr_change: changeMmr,
+                            ranking: updatedRanking.documentId
+                        } as any,
                         status: 'published'
                     });
 
                     return updatedRanking;
                 }));
 
-                // Update losers
                 const updatedLosers = await Promise.all(loserRankings.map(async (ranking, index) => {
                     const userId = losers[index];
                     const oldMmr = ranking.mmr;
@@ -188,15 +184,15 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                         status: 'published',
                     });
 
-                    // Create match history
                     await strapi.documents('api::match-history.match-history').create({
                         data: {
                             users: [userId],
                             matches: match_id ? [match_id] : [],
                             old_mmr: oldMmr,
                             new_mmr: newMmr,
-                            mmr_change: changeMmr
-                        },
+                            mmr_change: changeMmr,
+                            ranking: updatedRanking.documentId
+                        } as any,
                         status: 'published'
                     });
 
@@ -225,7 +221,6 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
             }
 
             try {
-                // 1. Find the match to get the scores and teams
                 const match = await strapi.documents('api::match.match').findOne({
                     documentId: match_id,
                     populate: ['team_a_id', 'team_b_id', 'team_a_id.team_players', 'team_b_id.team_players', 'team_a_id.team_players.user_id', 'team_b_id.team_players.user_id']
@@ -235,40 +230,42 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                     return ctx.notFound('Match not found');
                 }
 
-                // 2. Find all match history records for this match
                 const histories = await strapi.documents('api::match-history.match-history').findMany({
                     filters: {
                         matches: {
                             documentId: match_id
                         }
                     },
-                    populate: ['users']
+                    populate: ['users', 'ranking']
                 });
 
                 if (histories.length === 0) {
                     return ctx.send({ message: 'No history found to revert', reverted: 0 });
                 }
 
-                const revertedResults = await Promise.all(histories.map(async (history) => {
+                const revertedResults = await Promise.all(histories.map(async (history: any) => {
                     const user = history.users?.[0];
                     if (!user) return null;
 
-                    const ranking = await strapi.documents('api::ranking.ranking').findFirst({
-                        filters: { user_id: user.id as any }
-                    });
+                    let ranking;
+                    if (history.ranking) {
+                        ranking = history.ranking;
+                    } else {
+                        // Legacy fallback
+                        ranking = await strapi.documents('api::ranking.ranking').findFirst({
+                            filters: { user_id: user.id }
+                        });
+                    }
 
                     if (!ranking) return null;
 
-                    // Determine if the user was winner or loser based on mmr_change
                     const wasWinner = history.mmr_change > 0;
                     const wasLoser = history.mmr_change < 0;
 
-                    // Determine user's score and opponent's score based on team membership
                     const isTeamA = match.team_a_id?.team_players?.some(tp => tp.user_id?.id === user.id);
                     const userScore = isTeamA ? Number(match.score_a) : Number(match.score_b);
                     const opponentScore = isTeamA ? Number(match.score_b) : Number(match.score_a);
 
-                    // Revert the ranking stats
                     const updatedRanking = await strapi.documents('api::ranking.ranking').update({
                         documentId: ranking.documentId,
                         data: {
@@ -276,8 +273,6 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                             match_played: Math.max(0, (ranking.match_played || 0) - 1),
                             win: wasWinner ? Math.max(0, (ranking.win || 0) - 1) : ranking.win,
                             lose: wasLoser ? Math.max(0, (ranking.lose || 0) - 1) : ranking.lose,
-                            // win_streak is hard to revert perfectly without re-calculating everything, 
-                            // but we can at least decrement it if they were winners.
                             win_streak: wasWinner ? Math.max(0, (ranking.win_streak || 0) - 1) : ranking.win_streak,
                             point_for: Math.max(0, (ranking.point_for || 0) - userScore),
                             point_against: Math.max(0, (ranking.point_against || 0) - opponentScore),
@@ -285,7 +280,6 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                         status: 'published'
                     });
 
-                    // Delete this history record
                     await strapi.documents('api::match-history.match-history').delete({
                         documentId: history.documentId
                     });

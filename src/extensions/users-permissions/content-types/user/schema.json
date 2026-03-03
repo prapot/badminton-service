@@ -72,9 +72,9 @@
       "target": "api::team-player.team-player",
       "mappedBy": "user_id"
     },
-    "ranking": {
+    "rankings": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::ranking.ranking",
       "mappedBy": "user_id"
     },
