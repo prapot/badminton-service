@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-03T06:10:16.691Z"
+    "x-generation-date": "2026-03-14T08:27:09.795Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -10204,6 +10204,7 @@
                 "type": "string",
                 "enum": [
                   "round_robin",
+                  "endless_mode",
                   "knockout",
                   "americano"
                 ]
@@ -13780,6 +13781,7 @@
                                 "type": "string",
                                 "enum": [
                                   "round_robin",
+                                  "endless_mode",
                                   "knockout",
                                   "americano"
                                 ]
@@ -15970,6 +15972,7 @@
                     "type": "string",
                     "enum": [
                       "round_robin",
+                      "endless_mode",
                       "knockout",
                       "americano"
                     ]
@@ -19976,6 +19979,7 @@
                               "type": "string",
                               "enum": [
                                 "round_robin",
+                                "endless_mode",
                                 "knockout",
                                 "americano"
                               ]
@@ -22845,6 +22849,7 @@
                                     "type": "string",
                                     "enum": [
                                       "round_robin",
+                                      "endless_mode",
                                       "knockout",
                                       "americano"
                                     ]
@@ -24991,6 +24996,7 @@
                 "type": "string",
                 "enum": [
                   "round_robin",
+                  "endless_mode",
                   "knockout",
                   "americano"
                 ]
@@ -27856,6 +27862,7 @@
                     "type": "string",
                     "enum": [
                       "round_robin",
+                      "endless_mode",
                       "knockout",
                       "americano"
                     ]
@@ -30522,6 +30529,7 @@
                 "type": "string",
                 "enum": [
                   "round_robin",
+                  "endless_mode",
                   "knockout",
                   "americano"
                 ]
@@ -30687,6 +30695,7 @@
             "type": "string",
             "enum": [
               "round_robin",
+              "endless_mode",
               "knockout",
               "americano"
             ]
@@ -30747,6 +30756,7 @@
                       "type": "string",
                       "enum": [
                         "round_robin",
+                        "endless_mode",
                         "knockout",
                         "americano"
                       ]
@@ -33577,6 +33587,7 @@
                 "type": "string",
                 "enum": [
                   "round_robin",
+                  "endless_mode",
                   "knockout",
                   "americano"
                 ]

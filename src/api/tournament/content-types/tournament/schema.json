@@ -25,6 +25,7 @@
       "type": "enumeration",
       "enum": [
         "round_robin",
+        "endless_mode",
         "knockout",
         "americano"
       ]

@@ -897,7 +897,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     format: Schema.Attribute.Enumeration<
-      ['round_robin', 'knockout', 'americano']
+      ['round_robin', 'endless_mode', 'knockout', 'americano']
     >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
