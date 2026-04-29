@@ -72,6 +72,9 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "tournaments"
+    },
+    "permanent_teams": {
+      "type": "json"
     }
   }
 }

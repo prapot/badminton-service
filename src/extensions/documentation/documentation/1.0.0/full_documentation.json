@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-14T08:27:09.795Z"
+    "x-generation-date": "2026-04-29T19:31:53.255Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -12538,6 +12538,9 @@
                     "seed": {
                       "type": "integer"
                     },
+                    "is_paused": {
+                      "type": "boolean"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -12684,6 +12687,7 @@
                   }
                 }
               },
+              "permanent_teams": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -13851,6 +13855,9 @@
                                     "seed": {
                                       "type": "integer"
                                     },
+                                    "is_paused": {
+                                      "type": "boolean"
+                                    },
                                     "createdAt": {
                                       "type": "string",
                                       "format": "date-time"
@@ -14724,6 +14731,7 @@
                                   }
                                 }
                               },
+                              "permanent_teams": {},
                               "createdAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -18088,6 +18096,9 @@
                         "seed": {
                           "type": "integer"
                         },
+                        "is_paused": {
+                          "type": "boolean"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -18234,6 +18245,7 @@
                       }
                     }
                   },
+                  "permanent_teams": {},
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -20049,6 +20061,9 @@
                                   "seed": {
                                     "type": "integer"
                                   },
+                                  "is_paused": {
+                                    "type": "boolean"
+                                  },
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -20922,6 +20937,7 @@
                                 }
                               }
                             },
+                            "permanent_teams": {},
                             "createdAt": {
                               "type": "string",
                               "format": "date-time"
@@ -22919,6 +22935,9 @@
                                         "seed": {
                                           "type": "integer"
                                         },
+                                        "is_paused": {
+                                          "type": "boolean"
+                                        },
                                         "createdAt": {
                                           "type": "string",
                                           "format": "date-time"
@@ -23535,6 +23554,7 @@
                                       }
                                     }
                                   },
+                                  "permanent_teams": {},
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -27330,6 +27350,9 @@
                     "seed": {
                       "type": "integer"
                     },
+                    "is_paused": {
+                      "type": "boolean"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -27476,6 +27499,7 @@
                   }
                 }
               },
+              "permanent_teams": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -30028,6 +30052,9 @@
                         "seed": {
                           "type": "integer"
                         },
+                        "is_paused": {
+                          "type": "boolean"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -30174,6 +30201,7 @@
                       }
                     }
                   },
+                  "permanent_teams": {},
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -30606,6 +30634,7 @@
                 ],
                 "example": "string or id"
               },
+              "permanent_teams": {},
               "locale": {
                 "type": "string"
               },
@@ -33125,6 +33154,7 @@
                         }
                       }
                     },
+                    "permanent_teams": {},
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -33219,6 +33249,9 @@
                 },
                 "seed": {
                   "type": "integer"
+                },
+                "is_paused": {
+                  "type": "boolean"
                 },
                 "createdAt": {
                   "type": "string",
@@ -33366,6 +33399,7 @@
               }
             }
           },
+          "permanent_teams": {},
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -33484,6 +33518,9 @@
               },
               "seed": {
                 "type": "integer"
+              },
+              "is_paused": {
+                "type": "boolean"
               },
               "locale": {
                 "type": "string"
@@ -35921,6 +35958,9 @@
                     "seed": {
                       "type": "integer"
                     },
+                    "is_paused": {
+                      "type": "boolean"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -36067,6 +36107,7 @@
                   }
                 }
               },
+              "permanent_teams": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -36161,6 +36202,9 @@
           },
           "seed": {
             "type": "integer"
+          },
+          "is_paused": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
