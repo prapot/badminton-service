@@ -732,7 +732,9 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
     point_against: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     point_for: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
+    rank: Schema.Attribute.String & Schema.Attribute.DefaultTo<'Gold III'>;
     season: Schema.Attribute.Relation<'manyToOne', 'api::season.season'>;
+    stars: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<2>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

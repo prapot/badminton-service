@@ -51,6 +51,14 @@
       "type": "integer",
       "default": 1500
     },
+    "rank": {
+      "type": "string",
+      "default": "Gold III"
+    },
+    "stars": {
+      "type": "integer",
+      "default": 2
+    },
     "match_histories": {
       "type": "relation",
       "relation": "oneToMany",

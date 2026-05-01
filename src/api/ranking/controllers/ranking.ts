@@ -24,6 +24,66 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
         };
     }
 
+    const RANK_CONFIG = [
+        { name: 'Bronze', maxStars: 3 },
+        { name: 'Silver', maxStars: 3 },
+        { name: 'Gold', maxStars: 4 },
+        { name: 'Platinum', maxStars: 5 },
+        { name: 'Diamond', maxStars: 5 },
+        { name: 'Master', maxStars: 999999 }
+    ];
+
+    function calculateNewRankAndStars(currentRank: string | null, currentStars: number, isWin: boolean, winStreak: number) {
+        let rankName = currentRank || "Bronze";
+        let stars = currentStars || 0;
+        
+        let baseRankName = rankName.split(' ')[0];
+        let rankIdx = RANK_CONFIG.findIndex(r => r.name === baseRankName);
+        let config = RANK_CONFIG[rankIdx] || RANK_CONFIG[0];
+
+        if (isWin) {
+            let gain = 1;
+            // Bonus star for win streak >= 3 in ranks Bronze to Platinum
+            // winStreak here is the streak BEFORE this win, so if it's 2, this win makes it 3.
+            const bonusRanks = ["Bronze", "Silver", "Gold", "Platinum"];
+            if (winStreak >= 2 && bonusRanks.includes(baseRankName)) {
+                gain = 2;
+            }
+            
+            stars += gain;
+
+            // Promotion logic (with star carry-over)
+            while (stars > config.maxStars && rankName !== "Master") {
+                const nextRank = RANK_CONFIG[rankIdx + 1];
+                if (nextRank) {
+                    stars -= config.maxStars;
+                    rankName = nextRank.name;
+                    rankIdx++;
+                    config = RANK_CONFIG[rankIdx];
+                    baseRankName = rankName;
+                } else {
+                    break;
+                }
+            }
+        } else {
+            if (baseRankName === "Bronze" && stars === 0) {
+                stars = 0;
+            } else {
+                stars -= 1;
+                if (stars < 0) {
+                    if (rankIdx > 0) {
+                        const prevRank = RANK_CONFIG[rankIdx - 1];
+                        rankName = prevRank.name;
+                        stars = prevRank.maxStars; 
+                    } else {
+                        stars = 0;
+                    }
+                }
+            }
+        }
+        return { rank: rankName, stars };
+    }
+
 
     async function getOrCreateRanking(userId: any, activeSeason: any) {
         let ranking = await strapi.documents('api::ranking.ranking').findFirst({
@@ -42,11 +102,15 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                 sort: 'createdAt:desc'
             });
 
+            const { rank, stars } = lastRanking ? { rank: lastRanking.rank, stars: lastRanking.stars } : { rank: 'Bronze', stars: 0 };
+
             ranking = await strapi.documents('api::ranking.ranking').create({
                 data: {
                     user_id: userId,
                     season: activeSeason.documentId,
                     mmr: lastRanking ? lastRanking.mmr : 1500,
+                    rank,
+                    stars,
                     match_played: 0,
                     win: 0,
                     lose: 0,
@@ -137,10 +201,14 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                     const changeMmr = Math.round(winnerMmrDelta);
                     const newMmr = oldMmr + changeMmr;
 
+                    const { rank, stars } = calculateNewRankAndStars(ranking.rank, ranking.stars || 0, true, ranking.win_streak || 0);
+
                     const updatedRanking = await strapi.documents('api::ranking.ranking').update({
                         documentId: ranking.documentId,
                         data: {
                             mmr: newMmr,
+                            rank,
+                            stars,
                             match_played: (ranking.match_played || 0) + 1,
                             win: (ranking.win || 0) + 1,
                             win_streak: (ranking.win_streak || 0) + 1,
@@ -171,10 +239,14 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                     const changeMmr = Math.round(loserMmrDelta);
                     const newMmr = oldMmr + changeMmr;
 
+                    const { rank, stars } = calculateNewRankAndStars(ranking.rank, ranking.stars || 0, false, ranking.win_streak || 0);
+
                     const updatedRanking = await strapi.documents('api::ranking.ranking').update({
                         documentId: ranking.documentId,
                         data: {
                             mmr: newMmr,
+                            rank,
+                            stars,
                             match_played: (ranking.match_played || 0) + 1,
                             lose: (ranking.lose || 0) + 1,
                             win_streak: 0,
@@ -266,10 +338,14 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
                     const userScore = isTeamA ? Number(match.score_a) : Number(match.score_b);
                     const opponentScore = isTeamA ? Number(match.score_b) : Number(match.score_a);
 
+                    const { rank, stars } = calculateNewRankAndStars(ranking.rank, ranking.stars || 0, !wasWinner, 0);
+
                     const updatedRanking = await strapi.documents('api::ranking.ranking').update({
                         documentId: ranking.documentId,
                         data: {
                             mmr: history.old_mmr,
+                            rank,
+                            stars,
                             match_played: Math.max(0, (ranking.match_played || 0) - 1),
                             win: wasWinner ? Math.max(0, (ranking.win || 0) - 1) : ranking.win,
                             lose: wasLoser ? Math.max(0, (ranking.lose || 0) - 1) : ranking.lose,

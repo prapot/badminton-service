@@ -73,12 +73,17 @@ export default () => ({
         });
 
         const effectiveCounts = new Map(actualCounts);
-        const playedCounts = Array.from(actualCounts.values()).filter(c => c > 0);
+        const playedCounts = Array.from(actualCounts.values()).filter(c => c > 0).sort((a, b) => a - b);
         if (playedCounts.length > 0) {
-          const minPlayed = Math.min(...playedCounts);
+          // Use median to avoid late-joiners (outliers) dragging down the baseline.
+          // This prevents new players from being forced to play every match to catch up.
+          const midIndex = Math.floor(playedCounts.length / 2);
+          const baseline = playedCounts[midIndex];
+
           allPlayers.forEach(p => {
-            if (actualCounts.get(p.id) === 0) {
-              effectiveCounts.set(p.id, minPlayed);
+            const actual = actualCounts.get(p.id) || 0;
+            if (actual < baseline) {
+              effectiveCounts.set(p.id, baseline);
             }
           });
         }

@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-04-29T19:31:53.255Z"
+    "x-generation-date": "2026-05-01T11:17:57.762Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -11302,6 +11302,12 @@
                                                 "mmr": {
                                                   "type": "integer"
                                                 },
+                                                "rank": {
+                                                  "type": "string"
+                                                },
+                                                "stars": {
+                                                  "type": "integer"
+                                                },
                                                 "match_histories": {
                                                   "type": "array",
                                                   "items": {
@@ -14314,6 +14320,12 @@
                                               "mmr": {
                                                 "type": "integer"
                                               },
+                                              "rank": {
+                                                "type": "string"
+                                              },
+                                              "stars": {
+                                                "type": "integer"
+                                              },
                                               "match_histories": {
                                                 "type": "array",
                                                 "items": {
@@ -17123,6 +17135,12 @@
                                   "mmr": {
                                     "type": "integer"
                                   },
+                                  "rank": {
+                                    "type": "string"
+                                  },
+                                  "stars": {
+                                    "type": "integer"
+                                  },
                                   "match_histories": {
                                     "type": "array",
                                     "items": {
@@ -19226,6 +19244,12 @@
               "mmr": {
                 "type": "integer"
               },
+              "rank": {
+                "type": "string"
+              },
+              "stars": {
+                "type": "integer"
+              },
               "match_histories": {
                 "type": "array",
                 "items": {
@@ -20518,6 +20542,12 @@
                                               "type": "integer"
                                             },
                                             "mmr": {
+                                              "type": "integer"
+                                            },
+                                            "rank": {
+                                              "type": "string"
+                                            },
+                                            "stars": {
                                               "type": "integer"
                                             },
                                             "match_histories": {
@@ -21937,6 +21967,12 @@
             "type": "integer"
           },
           "mmr": {
+            "type": "integer"
+          },
+          "rank": {
+            "type": "string"
+          },
+          "stars": {
             "type": "integer"
           },
           "match_histories": {
@@ -24663,6 +24699,12 @@
                 "mmr": {
                   "type": "integer"
                 },
+                "rank": {
+                  "type": "string"
+                },
+                "stars": {
+                  "type": "integer"
+                },
                 "match_histories": {
                   "type": "array",
                   "items": {
@@ -26112,6 +26154,12 @@
                                                   "type": "integer"
                                                 },
                                                 "mmr": {
+                                                  "type": "integer"
+                                                },
+                                                "rank": {
+                                                  "type": "string"
+                                                },
+                                                "stars": {
                                                   "type": "integer"
                                                 },
                                                 "match_histories": {
@@ -28859,6 +28907,12 @@
                                     "type": "integer"
                                   },
                                   "mmr": {
+                                    "type": "integer"
+                                  },
+                                  "rank": {
+                                    "type": "string"
+                                  },
+                                  "stars": {
                                     "type": "integer"
                                   },
                                   "match_histories": {
@@ -31710,6 +31764,12 @@
                                             "type": "integer"
                                           },
                                           "mmr": {
+                                            "type": "integer"
+                                          },
+                                          "rank": {
+                                            "type": "string"
+                                          },
+                                          "stars": {
                                             "type": "integer"
                                           },
                                           "match_histories": {
@@ -34720,6 +34780,12 @@
                                                   "type": "integer"
                                                 },
                                                 "mmr": {
+                                                  "type": "integer"
+                                                },
+                                                "rank": {
+                                                  "type": "string"
+                                                },
+                                                "stars": {
                                                   "type": "integer"
                                                 },
                                                 "match_histories": {
