@@ -75,15 +75,14 @@ export default () => ({
         const effectiveCounts = new Map(actualCounts);
         const playedCounts = Array.from(actualCounts.values()).filter(c => c > 0).sort((a, b) => a - b);
         if (playedCounts.length > 0) {
-          // Use median to avoid late-joiners (outliers) dragging down the baseline.
-          // This prevents new players from being forced to play every match to catch up.
-          const midIndex = Math.floor(playedCounts.length / 2);
-          const baseline = playedCounts[midIndex];
+          const median = playedCounts[Math.floor(playedCounts.length / 2)];
+          const mainGroup = playedCounts.filter(c => c >= median - 1);
+          const minPlayed = mainGroup.length > 0 ? Math.min(...mainGroup) : median;
 
           allPlayers.forEach(p => {
             const actual = actualCounts.get(p.id) || 0;
-            if (actual < baseline) {
-              effectiveCounts.set(p.id, baseline);
+            if (actual < minPlayed) {
+              effectiveCounts.set(p.id, minPlayed);
             }
           });
         }
@@ -212,7 +211,7 @@ export default () => ({
                 // Exponential penalty for faceoff history
                 score += Math.pow(getFaceoffCount([tA[0].id, tA[1].id], [tB[0].id, tB[1].id]), 2) * 200;
                 // Heavy penalty for playing too many matches (ensures rotation of entire player pool)
-                score += (avgA + avgB) * 2000;
+                score += (avgA + avgB) * 20000;
                 i += 4;
               }
               if (shuffled.length - i === 2) {
@@ -317,5 +316,72 @@ export default () => ({
     } finally {
       drawingLocks.delete(tournamentId);
     }
+  },
+
+  async createMatchManual(tournamentId: string, playerIdsA: number[], playerIdsB: number[]) {
+    return await strapi.db.transaction(async ({ trx }) => {
+      // 1. Fetch tournament by documentId to get numeric ID
+      const tournaments = (await strapi.entityService.findMany('api::tournament.tournament', {
+        filters: { documentId: tournamentId },
+      } as any)) as any[];
+
+      const tournament = tournaments[0];
+      if (!tournament) throw new Error('Tournament not found');
+      const tNumericId = tournament.id;
+
+      const randNo = () => Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      // 2. Create Team A
+      const teamA = await strapi.entityService.create('api::team.team', {
+        data: { tournament_id: tNumericId, team_no: randNo() },
+        // @ts-ignore
+        transaction: trx,
+      });
+
+      await Promise.all(playerIdsA.map((pid: number) =>
+        strapi.entityService.create('api::team-player.team-player', {
+          data: { team_id: teamA.id, user_id: pid },
+          // @ts-ignore
+          transaction: trx,
+        })
+      ));
+
+      // 3. Create Team B
+      const teamB = await strapi.entityService.create('api::team.team', {
+        data: { tournament_id: tNumericId, team_no: randNo() },
+        // @ts-ignore
+        transaction: trx,
+      });
+
+      await Promise.all(playerIdsB.map((pid: number) =>
+        strapi.entityService.create('api::team-player.team-player', {
+          data: { team_id: teamB.id, user_id: pid },
+          // @ts-ignore
+          transaction: trx,
+        })
+      ));
+
+      // 4. Get match number
+      const matchCount = await strapi.db.query('api::match.match').count({
+        where: { tournament_id: tNumericId }
+      });
+
+      // 5. Create Match
+      const match = await strapi.entityService.create('api::match.match', {
+        data: {
+          tournament_id: tNumericId,
+          round: 1,
+          match_no: matchCount + 1,
+          team_a_id: teamA.id,
+          team_b_id: teamB.id,
+          match_status: "upcoming",
+          first_serve: "A"
+        },
+        // @ts-ignore
+        transaction: trx,
+      });
+
+      return match;
+    });
   }
 });

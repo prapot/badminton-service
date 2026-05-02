@@ -29,6 +29,10 @@
     "is_paused": {
       "type": "boolean",
       "default": false
+    },
+    "match_offset": {
+      "type": "integer",
+      "default": 0
     }
   }
 }

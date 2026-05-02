@@ -869,6 +869,7 @@ export interface ApiTournamentPlayerTournamentPlayer
       'api::tournament-player.tournament-player'
     > &
       Schema.Attribute.Private;
+    match_offset: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     seed: Schema.Attribute.Integer;
     tournament_id: Schema.Attribute.Relation<

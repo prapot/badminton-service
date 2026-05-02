@@ -21,5 +21,19 @@ export default {
     } catch (err: any) {
       return ctx.badRequest(err.message);
     }
+  },
+
+  async createEndlessMatch(ctx) {
+    try {
+      const { id } = ctx.params;
+      const { playerIdsA, playerIdsB } = ctx.request.body.data || {};
+      
+      const service = strapi.service('api::tournament.custom-tournament');
+      const result = await (service as any).createMatchManual(id, playerIdsA, playerIdsB);
+      
+      ctx.body = { data: result };
+    } catch (err: any) {
+      return ctx.badRequest(err.message);
+    }
   }
 };

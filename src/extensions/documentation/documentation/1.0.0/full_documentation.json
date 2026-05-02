@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-05-01T11:17:57.762Z"
+    "x-generation-date": "2026-05-02T18:40:07.926Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -12547,6 +12547,9 @@
                     "is_paused": {
                       "type": "boolean"
                     },
+                    "match_offset": {
+                      "type": "integer"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -13863,6 +13866,9 @@
                                     },
                                     "is_paused": {
                                       "type": "boolean"
+                                    },
+                                    "match_offset": {
+                                      "type": "integer"
                                     },
                                     "createdAt": {
                                       "type": "string",
@@ -18117,6 +18123,9 @@
                         "is_paused": {
                           "type": "boolean"
                         },
+                        "match_offset": {
+                          "type": "integer"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -20087,6 +20096,9 @@
                                   },
                                   "is_paused": {
                                     "type": "boolean"
+                                  },
+                                  "match_offset": {
+                                    "type": "integer"
                                   },
                                   "createdAt": {
                                     "type": "string",
@@ -22973,6 +22985,9 @@
                                         },
                                         "is_paused": {
                                           "type": "boolean"
+                                        },
+                                        "match_offset": {
+                                          "type": "integer"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -27401,6 +27416,9 @@
                     "is_paused": {
                       "type": "boolean"
                     },
+                    "match_offset": {
+                      "type": "integer"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -30108,6 +30126,9 @@
                         },
                         "is_paused": {
                           "type": "boolean"
+                        },
+                        "match_offset": {
+                          "type": "integer"
                         },
                         "createdAt": {
                           "type": "string",
@@ -33313,6 +33334,9 @@
                 "is_paused": {
                   "type": "boolean"
                 },
+                "match_offset": {
+                  "type": "integer"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -33581,6 +33605,9 @@
               },
               "is_paused": {
                 "type": "boolean"
+              },
+              "match_offset": {
+                "type": "integer"
               },
               "locale": {
                 "type": "string"
@@ -36027,6 +36054,9 @@
                     "is_paused": {
                       "type": "boolean"
                     },
+                    "match_offset": {
+                      "type": "integer"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -36271,6 +36301,9 @@
           },
           "is_paused": {
             "type": "boolean"
+          },
+          "match_offset": {
+            "type": "integer"
           },
           "createdAt": {
             "type": "string",
