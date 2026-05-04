@@ -147,6 +147,12 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
     },
 
     async recordMatch(winners: number[], losers: number[], winnerScore: number, loserScore: number, matchId: string) {
+        let matchInternalId = null;
+        if (matchId) {
+            const matchEntity = await strapi.db.query('api::match.match').findOne({ where: { documentId: matchId } });
+            if (matchEntity) matchInternalId = matchEntity.id;
+        }
+
         const activeSeason = await this.getOrCreateCurrentSeason();
 
         const winnerRankings = await Promise.all(winners.map(id => this.getOrCreateRanking(id, activeSeason)));
@@ -188,17 +194,22 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 status: 'published',
             });
 
-            await strapi.documents('api::match-history.match-history').create({
-                data: {
-                    users: [userId],
-                    matches: matchId ? [matchId] : [],
-                    old_mmr: oldMmr,
-                    new_mmr: newMmr,
-                    mmr_change: changeMmr,
-                    ranking: updatedRanking.id
-                } as any,
-                status: 'published'
-            });
+            try {
+                await strapi.db.query('api::match-history.match-history').create({
+                    data: {
+                        users: [userId],
+                        matches: matchInternalId ? [matchInternalId] : [],
+                        old_mmr: oldMmr,
+                        new_mmr: newMmr,
+                        mmr_change: changeMmr,
+                        ranking: updatedRanking.id,
+                        publishedAt: new Date()
+                    }
+                });
+            } catch (e) {
+                console.error("FAILED CREATE HISTORY WINNERS:", e);
+                throw e;
+            }
 
             return updatedRanking;
         }));
@@ -226,17 +237,22 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 status: 'published',
             });
 
-            await strapi.documents('api::match-history.match-history').create({
-                data: {
-                    users: [userId],
-                    matches: matchId ? [matchId] : [],
-                    old_mmr: oldMmr,
-                    new_mmr: newMmr,
-                    mmr_change: changeMmr,
-                    ranking: updatedRanking.id
-                } as any,
-                status: 'published'
-            });
+            try {
+                await strapi.db.query('api::match-history.match-history').create({
+                    data: {
+                        users: [userId],
+                        matches: matchInternalId ? [matchInternalId] : [],
+                        old_mmr: oldMmr,
+                        new_mmr: newMmr,
+                        mmr_change: changeMmr,
+                        ranking: updatedRanking.id,
+                        publishedAt: new Date()
+                    }
+                });
+            } catch (e) {
+                console.error("FAILED CREATE HISTORY LOSERS:", e);
+                throw e;
+            }
 
             return updatedRanking;
         }));
