@@ -1,39 +1,48 @@
+const strapi = require('@strapi/strapi');
 
-const { createCoreService } = require('@strapi/strapi').factories;
-
-async function checkMatches() {
-  console.log("--- Checking Database Matches ---");
-  
-  // Find the latest knockout tournament
-  const tournaments = await strapi.documents('api::tournament.tournament').findMany({
-    filters: { format: 'knockout' },
-    sort: { createdAt: 'desc' },
-    limit: 1
-  });
-
-  if (tournaments.length === 0) {
-    console.log("No knockout tournament found.");
-    return;
-  }
-
-  const t = tournaments[0];
-  console.log(`Tournament: ${t.title} (ID: ${t.id}, DocumentID: ${t.documentId})`);
-
-  // Find all matches for this tournament
-  const matches = await strapi.documents('api::match.match').findMany({
-    filters: { tournament_id: { documentId: t.documentId } },
-    populate: ['team_a_id', 'team_b_id', 'team_winner'],
-    sort: [{ round: 'asc' }, { match_no: 'asc' }]
-  });
-
-  console.log(`Found ${matches.length} matches.`);
-
-  matches.forEach(m => {
-    console.log(`R${m.round} M${m.match_no}: [${m.match_status}] TeamA: ${m.team_a_id?.team_no || 'null'}, TeamB: ${m.team_b_id?.team_no || 'null'}, Winner: ${m.team_winner?.team_no || 'null'}`);
-  });
+async function checkTodayMatches() {
+    const app = await strapi().load();
+    
+    // Find all matches updated today
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const matches = await app.db.query('api::match.match').findMany({
+        where: {
+            updatedAt: { $gte: today },
+            match_status: 'done'
+        },
+        populate: ['tournament_id', 'team_winner', 'team_a_id.team_players', 'team_b_id.team_players']
+    });
+    
+    console.log(`Found ${matches.length} finished matches today.`);
+    
+    for (const m of matches) {
+        console.log(`Match ${m.id} | Tournament Mode: ${m.tournament_id?.mode} | Status: ${m.match_status} | Scores: ${m.score_a}-${m.score_b}`);
+        
+        // Check if history exists
+        const history = await app.db.query('api::match-history.match-history').findMany({
+            where: { matches: m.id },
+            populate: ['users', 'ranking']
+        });
+        
+        console.log(`  -> Generated ${history.length} match-history records.`);
+    }
+    
+    // Check active season
+    const activeSeason = await app.db.query('api::season.season').findOne({
+        where: { is_active: true }
+    });
+    console.log(`\nActive Season: ${activeSeason?.name}`);
+    
+    // Check rankings created today
+    const rankings = await app.db.query('api::ranking.ranking').findMany({
+        where: { season: activeSeason?.id },
+        populate: ['user_id']
+    });
+    console.log(`Rankings created for active season: ${rankings.length}`);
+    
+    process.exit(0);
 }
 
-checkMatches().then(() => process.exit(0)).catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+checkTodayMatches().catch(console.error);

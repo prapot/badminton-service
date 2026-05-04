@@ -134,18 +134,9 @@ export default {
 };
 
 async function recordMatchStats(matchId) {
-    const match = await strapi.documents('api::match.match').findOne({
-        documentId: matchId,
-        populate: [
-            'tournament_id',
-            'team_a_id', 
-            'team_b_id', 
-            'team_winner',
-            'team_a_id.team_players', 
-            'team_b_id.team_players', 
-            'team_a_id.team_players.user_id', 
-            'team_b_id.team_players.user_id'
-        ]
+    const match = await strapi.db.query('api::match.match').findOne({
+        where: { documentId: matchId },
+        populate: ['tournament_id', 'team_a_id.team_players.user_id', 'team_b_id.team_players.user_id', 'team_winner']
     });
 
     if (!match || !match.tournament_id) return;
@@ -153,15 +144,17 @@ async function recordMatchStats(matchId) {
     // Only record for tournaments in 'ranking' mode
     if (match.tournament_id.mode !== 'ranking') return;
 
-    const winnerId = match.team_winner?.documentId || match.team_winner?.id;
-    if (!winnerId) return;
+    const winnerId = match.team_winner?.documentId;
+    const winnerIdNum = match.team_winner?.id;
+    if (!winnerId && !winnerIdNum) return;
 
-    const isWinnerA = winnerId === (match.team_a_id?.documentId || match.team_a_id?.id);
+    const isWinnerA = (winnerId && winnerId === match.team_a_id?.documentId) || (winnerIdNum && winnerIdNum === match.team_a_id?.id);
     const winnerTeam = isWinnerA ? match.team_a_id : match.team_b_id;
     const loserTeam = isWinnerA ? match.team_b_id : match.team_a_id;
 
-    const winners = winnerTeam?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || [];
-    const losers = loserTeam?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || [];
+    // Use Set to remove duplicate IDs caused by Strapi drafts
+    const winners = Array.from(new Set(winnerTeam?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || []));
+    const losers = Array.from(new Set(loserTeam?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || []));
 
     const winnerScore = isWinnerA ? match.score_a : match.score_b;
     const loserScore = isWinnerA ? match.score_b : match.score_a;
