@@ -23,6 +23,14 @@ export default {
             config: {
                 auth: false,
             },
+        },
+        {
+            method: 'GET',
+            path: '/rankings/fix-production',
+            handler: 'ranking.fixProduction',
+            config: {
+                auth: false,
+            },
         }
     ],
 };
