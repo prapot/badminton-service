@@ -1,11 +1,11 @@
 import { factories } from '@strapi/strapi';
 
 const RANK_CONFIG = [
-    { name: 'Bronze', maxStars: 3 },
-    { name: 'Silver', maxStars: 3 },
-    { name: 'Gold', maxStars: 4 },
-    { name: 'Platinum', maxStars: 5 },
-    { name: 'Diamond', maxStars: 5 },
+    { name: 'Bronze', maxStars: 5 },
+    { name: 'Silver', maxStars: 5 },
+    { name: 'Gold', maxStars: 7 },
+    { name: 'Platinum', maxStars: 8 },
+    { name: 'Diamond', maxStars: 10 },
     { name: 'Master', maxStars: 999999 }
 ];
 
@@ -72,7 +72,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
 
         if (isWin) {
             let gain = 1;
-            const bonusRanks = ["Bronze", "Silver", "Gold", "Platinum"];
+            const bonusRanks = ["Bronze", "Silver"];
             if (winStreak >= 2 && bonusRanks.includes(baseRankName)) {
                 gain = 2;
             }

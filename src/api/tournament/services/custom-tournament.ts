@@ -218,12 +218,12 @@ export default () => ({
                   if (!r?.rank) return 0; // Bronze 0 (new player / after re-rank)
                   const name = (r.rank || '').toLowerCase();
                   const stars = r.stars || 0;
-                  if (name.includes('master'))   return 25 + stars;
-                  if (name.includes('diamond'))  return 19 + stars;
+                  if (name.includes('master')) return 25 + stars;
+                  if (name.includes('diamond')) return 19 + stars;
                   if (name.includes('platinum')) return 13 + stars;
-                  if (name.includes('gold'))     return 8 + stars;
-                  if (name.includes('silver'))   return 4 + stars;
-                  if (name.includes('bronze'))   return 0 + stars;
+                  if (name.includes('gold')) return 8 + stars;
+                  if (name.includes('silver')) return 4 + stars;
+                  if (name.includes('bronze')) return 0 + stars;
                   return 0;
                 };
                 const avgSkillA = tA.reduce((s: number, p: any) => s + getSkillScore(p), 0) / tA.length;
