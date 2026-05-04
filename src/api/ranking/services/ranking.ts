@@ -195,7 +195,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     old_mmr: oldMmr,
                     new_mmr: newMmr,
                     mmr_change: changeMmr,
-                    ranking: updatedRanking.documentId
+                    ranking: updatedRanking.id
                 } as any,
                 status: 'published'
             });
@@ -233,7 +233,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     old_mmr: oldMmr,
                     new_mmr: newMmr,
                     mmr_change: changeMmr,
-                    ranking: updatedRanking.documentId
+                    ranking: updatedRanking.id
                 } as any,
                 status: 'published'
             });
