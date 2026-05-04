@@ -212,6 +212,23 @@ export default () => ({
                 score += Math.pow(getFaceoffCount([tA[0].id, tA[1].id], [tB[0].id, tB[1].id]), 2) * 200;
                 // Heavy penalty for playing too many matches (ensures rotation of entire player pool)
                 score += (avgA + avgB) * 20000;
+                // Rank Balance: penalize imbalanced teams (high rank + high rank vs low rank + low rank)
+                const getSkillScore = (p: any): number => {
+                  const r = p.rankings?.[0];
+                  if (!r?.rank) return 0; // Bronze 0 (new player / after re-rank)
+                  const name = (r.rank || '').toLowerCase();
+                  const stars = r.stars || 0;
+                  if (name.includes('master'))   return 25 + stars;
+                  if (name.includes('diamond'))  return 19 + stars;
+                  if (name.includes('platinum')) return 13 + stars;
+                  if (name.includes('gold'))     return 8 + stars;
+                  if (name.includes('silver'))   return 4 + stars;
+                  if (name.includes('bronze'))   return 0 + stars;
+                  return 0;
+                };
+                const avgSkillA = tA.reduce((s: number, p: any) => s + getSkillScore(p), 0) / tA.length;
+                const avgSkillB = tB.reduce((s: number, p: any) => s + getSkillScore(p), 0) / tB.length;
+                score += Math.abs(avgSkillA - avgSkillB) * 800;
                 i += 4;
               }
               if (shuffled.length - i === 2) {
