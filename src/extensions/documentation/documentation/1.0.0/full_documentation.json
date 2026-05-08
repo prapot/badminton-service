@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-05-04T19:04:43.277Z"
+    "x-generation-date": "2026-05-07T19:59:38.284Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -11113,13 +11113,13 @@
                                                 }
                                               }
                                             },
-                                            "old_mmr": {
+                                            "old_rp": {
                                               "type": "integer"
                                             },
-                                            "new_mmr": {
+                                            "new_rp": {
                                               "type": "integer"
                                             },
-                                            "mmr_change": {
+                                            "rp_change": {
                                               "type": "integer"
                                             },
                                             "ranking": {
@@ -11299,13 +11299,16 @@
                                                 "win_streak": {
                                                   "type": "integer"
                                                 },
-                                                "mmr": {
+                                                "ranking_points": {
                                                   "type": "integer"
                                                 },
                                                 "rank": {
                                                   "type": "string"
                                                 },
                                                 "stars": {
+                                                  "type": "integer"
+                                                },
+                                                "brave_points": {
                                                   "type": "integer"
                                                 },
                                                 "match_histories": {
@@ -11402,6 +11405,9 @@
                                                   }
                                                 }
                                               }
+                                            },
+                                            "is_win": {
+                                              "type": "boolean"
                                             },
                                             "createdAt": {
                                               "type": "string",
@@ -13021,13 +13027,13 @@
                   "example": "string or id"
                 }
               },
-              "old_mmr": {
+              "old_rp": {
                 "type": "integer"
               },
-              "new_mmr": {
+              "new_rp": {
                 "type": "integer"
               },
-              "mmr_change": {
+              "rp_change": {
                 "type": "integer"
               },
               "ranking": {
@@ -13040,6 +13046,9 @@
                   }
                 ],
                 "example": "string or id"
+              },
+              "is_win": {
+                "type": "boolean"
               },
               "locale": {
                 "type": "string"
@@ -14137,13 +14146,13 @@
                                               }
                                             }
                                           },
-                                          "old_mmr": {
+                                          "old_rp": {
                                             "type": "integer"
                                           },
-                                          "new_mmr": {
+                                          "new_rp": {
                                             "type": "integer"
                                           },
-                                          "mmr_change": {
+                                          "rp_change": {
                                             "type": "integer"
                                           },
                                           "ranking": {
@@ -14323,13 +14332,16 @@
                                               "win_streak": {
                                                 "type": "integer"
                                               },
-                                              "mmr": {
+                                              "ranking_points": {
                                                 "type": "integer"
                                               },
                                               "rank": {
                                                 "type": "string"
                                               },
                                               "stars": {
+                                                "type": "integer"
+                                              },
+                                              "brave_points": {
                                                 "type": "integer"
                                               },
                                               "match_histories": {
@@ -14426,6 +14438,9 @@
                                                 }
                                               }
                                             }
+                                          },
+                                          "is_win": {
+                                            "type": "boolean"
                                           },
                                           "createdAt": {
                                             "type": "string",
@@ -15734,13 +15749,13 @@
               }
             }
           },
-          "old_mmr": {
+          "old_rp": {
             "type": "integer"
           },
-          "new_mmr": {
+          "new_rp": {
             "type": "integer"
           },
-          "mmr_change": {
+          "rp_change": {
             "type": "integer"
           },
           "ranking": {
@@ -15760,6 +15775,9 @@
                 "type": "string"
               }
             }
+          },
+          "is_win": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -17138,13 +17156,16 @@
                                   "win_streak": {
                                     "type": "integer"
                                   },
-                                  "mmr": {
+                                  "ranking_points": {
                                     "type": "integer"
                                   },
                                   "rank": {
                                     "type": "string"
                                   },
                                   "stars": {
+                                    "type": "integer"
+                                  },
+                                  "brave_points": {
                                     "type": "integer"
                                   },
                                   "match_histories": {
@@ -17207,13 +17228,13 @@
                                             }
                                           }
                                         },
-                                        "old_mmr": {
+                                        "old_rp": {
                                           "type": "integer"
                                         },
-                                        "new_mmr": {
+                                        "new_rp": {
                                           "type": "integer"
                                         },
-                                        "mmr_change": {
+                                        "rp_change": {
                                           "type": "integer"
                                         },
                                         "ranking": {
@@ -17233,6 +17254,9 @@
                                               "type": "string"
                                             }
                                           }
+                                        },
+                                        "is_win": {
+                                          "type": "boolean"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -19250,13 +19274,16 @@
               "win_streak": {
                 "type": "integer"
               },
-              "mmr": {
+              "ranking_points": {
                 "type": "integer"
               },
               "rank": {
                 "type": "string"
               },
               "stars": {
+                "type": "integer"
+              },
+              "brave_points": {
                 "type": "integer"
               },
               "match_histories": {
@@ -20367,13 +20394,13 @@
                                             }
                                           }
                                         },
-                                        "old_mmr": {
+                                        "old_rp": {
                                           "type": "integer"
                                         },
-                                        "new_mmr": {
+                                        "new_rp": {
                                           "type": "integer"
                                         },
-                                        "mmr_change": {
+                                        "rp_change": {
                                           "type": "integer"
                                         },
                                         "ranking": {
@@ -20553,13 +20580,16 @@
                                             "win_streak": {
                                               "type": "integer"
                                             },
-                                            "mmr": {
+                                            "ranking_points": {
                                               "type": "integer"
                                             },
                                             "rank": {
                                               "type": "string"
                                             },
                                             "stars": {
+                                              "type": "integer"
+                                            },
+                                            "brave_points": {
                                               "type": "integer"
                                             },
                                             "match_histories": {
@@ -20656,6 +20686,9 @@
                                               }
                                             }
                                           }
+                                        },
+                                        "is_win": {
+                                          "type": "boolean"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -21978,13 +22011,16 @@
           "win_streak": {
             "type": "integer"
           },
-          "mmr": {
+          "ranking_points": {
             "type": "integer"
           },
           "rank": {
             "type": "string"
           },
           "stars": {
+            "type": "integer"
+          },
+          "brave_points": {
             "type": "integer"
           },
           "match_histories": {
@@ -23256,13 +23292,13 @@
                                                   }
                                                 }
                                               },
-                                              "old_mmr": {
+                                              "old_rp": {
                                                 "type": "integer"
                                               },
-                                              "new_mmr": {
+                                              "new_rp": {
                                                 "type": "integer"
                                               },
-                                              "mmr_change": {
+                                              "rp_change": {
                                                 "type": "integer"
                                               },
                                               "ranking": {
@@ -23282,6 +23318,9 @@
                                                     "type": "string"
                                                   }
                                                 }
+                                              },
+                                              "is_win": {
+                                                "type": "boolean"
                                               },
                                               "createdAt": {
                                                 "type": "string",
@@ -24711,13 +24750,16 @@
                 "win_streak": {
                   "type": "integer"
                 },
-                "mmr": {
+                "ranking_points": {
                   "type": "integer"
                 },
                 "rank": {
                   "type": "string"
                 },
                 "stars": {
+                  "type": "integer"
+                },
+                "brave_points": {
                   "type": "integer"
                 },
                 "match_histories": {
@@ -25982,13 +26024,13 @@
                                                 }
                                               }
                                             },
-                                            "old_mmr": {
+                                            "old_rp": {
                                               "type": "integer"
                                             },
-                                            "new_mmr": {
+                                            "new_rp": {
                                               "type": "integer"
                                             },
-                                            "mmr_change": {
+                                            "rp_change": {
                                               "type": "integer"
                                             },
                                             "ranking": {
@@ -26168,13 +26210,16 @@
                                                 "win_streak": {
                                                   "type": "integer"
                                                 },
-                                                "mmr": {
+                                                "ranking_points": {
                                                   "type": "integer"
                                                 },
                                                 "rank": {
                                                   "type": "string"
                                                 },
                                                 "stars": {
+                                                  "type": "integer"
+                                                },
+                                                "brave_points": {
                                                   "type": "integer"
                                                 },
                                                 "match_histories": {
@@ -26271,6 +26316,9 @@
                                                   }
                                                 }
                                               }
+                                            },
+                                            "is_win": {
+                                              "type": "boolean"
                                             },
                                             "createdAt": {
                                               "type": "string",
@@ -28924,13 +28972,16 @@
                                   "win_streak": {
                                     "type": "integer"
                                   },
-                                  "mmr": {
+                                  "ranking_points": {
                                     "type": "integer"
                                   },
                                   "rank": {
                                     "type": "string"
                                   },
                                   "stars": {
+                                    "type": "integer"
+                                  },
+                                  "brave_points": {
                                     "type": "integer"
                                   },
                                   "match_histories": {
@@ -29322,13 +29373,13 @@
                                             }
                                           }
                                         },
-                                        "old_mmr": {
+                                        "old_rp": {
                                           "type": "integer"
                                         },
-                                        "new_mmr": {
+                                        "new_rp": {
                                           "type": "integer"
                                         },
-                                        "mmr_change": {
+                                        "rp_change": {
                                           "type": "integer"
                                         },
                                         "ranking": {
@@ -29348,6 +29399,9 @@
                                               "type": "string"
                                             }
                                           }
+                                        },
+                                        "is_win": {
+                                          "type": "boolean"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -31784,13 +31838,16 @@
                                           "win_streak": {
                                             "type": "integer"
                                           },
-                                          "mmr": {
+                                          "ranking_points": {
                                             "type": "integer"
                                           },
                                           "rank": {
                                             "type": "string"
                                           },
                                           "stars": {
+                                            "type": "integer"
+                                          },
+                                          "brave_points": {
                                             "type": "integer"
                                           },
                                           "match_histories": {
@@ -32182,13 +32239,13 @@
                                                     }
                                                   }
                                                 },
-                                                "old_mmr": {
+                                                "old_rp": {
                                                   "type": "integer"
                                                 },
-                                                "new_mmr": {
+                                                "new_rp": {
                                                   "type": "integer"
                                                 },
-                                                "mmr_change": {
+                                                "rp_change": {
                                                   "type": "integer"
                                                 },
                                                 "ranking": {
@@ -32208,6 +32265,9 @@
                                                       "type": "string"
                                                     }
                                                   }
+                                                },
+                                                "is_win": {
+                                                  "type": "boolean"
                                                 },
                                                 "createdAt": {
                                                   "type": "string",
@@ -34620,13 +34680,13 @@
                                                 }
                                               }
                                             },
-                                            "old_mmr": {
+                                            "old_rp": {
                                               "type": "integer"
                                             },
-                                            "new_mmr": {
+                                            "new_rp": {
                                               "type": "integer"
                                             },
-                                            "mmr_change": {
+                                            "rp_change": {
                                               "type": "integer"
                                             },
                                             "ranking": {
@@ -34806,13 +34866,16 @@
                                                 "win_streak": {
                                                   "type": "integer"
                                                 },
-                                                "mmr": {
+                                                "ranking_points": {
                                                   "type": "integer"
                                                 },
                                                 "rank": {
                                                   "type": "string"
                                                 },
                                                 "stars": {
+                                                  "type": "integer"
+                                                },
+                                                "brave_points": {
                                                   "type": "integer"
                                                 },
                                                 "match_histories": {
@@ -34909,6 +34972,9 @@
                                                   }
                                                 }
                                               }
+                                            },
+                                            "is_win": {
+                                              "type": "boolean"
                                             },
                                             "createdAt": {
                                               "type": "string",

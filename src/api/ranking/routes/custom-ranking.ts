@@ -31,6 +31,30 @@ export default {
             config: {
                 auth: false,
             },
+        },
+        {
+            method: 'POST',
+            path: '/rankings/matchmake',
+            handler: 'ranking.matchmake',
+            config: {
+                auth: false,
+            },
+        },
+        {
+            method: 'GET',
+            path: '/rankings/history/:userId',
+            handler: 'ranking.getHistory',
+            config: {
+                auth: false,
+            },
+        },
+        {
+            method: 'POST',
+            path: '/rankings/reset-current-season',
+            handler: 'ranking.resetCurrentSeason',
+            config: {
+                auth: false,
+            },
         }
     ],
 };

@@ -134,30 +134,40 @@ export default {
 };
 
 async function recordMatchStats(matchId) {
-    const match = await strapi.db.query('api::match.match').findOne({
-        where: { documentId: matchId },
-        populate: ['tournament_id', 'team_a_id.team_players.user_id', 'team_b_id.team_players.user_id', 'team_winner']
-    });
+    const match = await strapi.documents('api::match.match').findOne({
+        documentId: matchId,
+        status: 'draft',
+        populate: {
+            tournament_id: true,
+            team_winner: true,
+            team_a_id: { populate: { team_players: { populate: { user_id: true } } } },
+            team_b_id: { populate: { team_players: { populate: { user_id: true } } } }
+        }
+    } as any);
 
-    if (!match || !match.tournament_id) return;
+    if (!match || !(match as any).tournament_id || (match as any).tournament_id.mode !== 'ranking') return;
 
-    // Only record for tournaments in 'ranking' mode
-    if (match.tournament_id.mode !== 'ranking') return;
+    const scoreA = match.score_a || 0;
+    const scoreB = match.score_b || 0;
+    
+    // Determine winner team based on team_winner relation OR scores as fallback
+    let winnerTeam = (match as any).team_winner;
+    if (!winnerTeam) {
+        if (scoreA > scoreB) winnerTeam = (match as any).team_a_id;
+        else if (scoreB > scoreA) winnerTeam = (match as any).team_b_id;
+    }
 
-    const winnerId = match.team_winner?.documentId;
-    const winnerIdNum = match.team_winner?.id;
-    if (!winnerId && !winnerIdNum) return;
+    if (!winnerTeam) return;
 
-    const isWinnerA = (winnerId && winnerId === match.team_a_id?.documentId) || (winnerIdNum && winnerIdNum === match.team_a_id?.id);
-    const winnerTeam = isWinnerA ? match.team_a_id : match.team_b_id;
-    const loserTeam = isWinnerA ? match.team_b_id : match.team_a_id;
+    const isWinnerA = winnerTeam.documentId === (match as any).team_a_id?.documentId || winnerTeam.id === (match as any).team_a_id?.id;
+    const loserTeam = isWinnerA ? (match as any).team_b_id : (match as any).team_a_id;
 
     // Use Set to remove duplicate IDs caused by Strapi drafts
-    const winners = Array.from(new Set(winnerTeam?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || []));
-    const losers = Array.from(new Set(loserTeam?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || []));
+    const winners = Array.from(new Set(winnerTeam.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || []));
+    const losers = Array.from(new Set((loserTeam as any)?.team_players?.map(tp => tp.user_id?.id).filter(Boolean) || []));
 
-    const winnerScore = isWinnerA ? match.score_a : match.score_b;
-    const loserScore = isWinnerA ? match.score_b : match.score_a;
+    const winnerScore = isWinnerA ? scoreA : scoreB;
+    const loserScore = isWinnerA ? scoreB : scoreA;
 
     if (winners.length > 0 && losers.length > 0) {
         await strapi.service('api::ranking.ranking').recordMatch(

@@ -47,9 +47,9 @@
       "type": "integer",
       "default": 0
     },
-    "mmr": {
+    "ranking_points": {
       "type": "integer",
-      "default": 1500
+      "default": 0
     },
     "rank": {
       "type": "string",
@@ -58,6 +58,10 @@
     "stars": {
       "type": "integer",
       "default": 2
+    },
+    "brave_points": {
+      "type": "integer",
+      "default": 0
     },
     "match_histories": {
       "type": "relation",

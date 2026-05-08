@@ -23,15 +23,15 @@
       "target": "api::match.match",
       "inversedBy": "match_histories"
     },
-    "old_mmr": {
+    "old_rp": {
       "type": "integer",
       "default": 0
     },
-    "new_mmr": {
+    "new_rp": {
       "type": "integer",
       "default": 0
     },
-    "mmr_change": {
+    "rp_change": {
       "type": "integer",
       "default": 0
     },
@@ -40,6 +40,10 @@
       "relation": "manyToOne",
       "target": "api::ranking.ranking",
       "inversedBy": "match_histories"
+    },
+    "is_win": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

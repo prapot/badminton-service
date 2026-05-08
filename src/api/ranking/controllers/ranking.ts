@@ -120,5 +120,40 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
         } catch (err) {
             return ctx.internalServerError(err.message);
         }
+    },
+    async matchmake(ctx) {
+        const requestBody = ctx.request.body || {};
+        const body = requestBody.data || requestBody;
+        const { player_ids } = body;
+
+        if (!player_ids || !Array.isArray(player_ids) || player_ids.length !== 4) {
+            return ctx.badRequest('player_ids array with 4 IDs is required');
+        }
+
+        try {
+            const result = await strapi.service('api::ranking.ranking').getBalancedTeams(player_ids);
+            return ctx.send({ data: result });
+        } catch (err) {
+            return ctx.internalServerError(err.message);
+        }
+    },
+    async getHistory(ctx) {
+        const { userId } = ctx.params;
+        if (!userId) return ctx.badRequest('userId is required');
+
+        try {
+            const result = await strapi.service('api::ranking.ranking').getSeasonHistory(Number(userId));
+            return ctx.send({ data: result });
+        } catch (err) {
+            return ctx.internalServerError(err.message);
+        }
+    },
+    async resetCurrentSeason(ctx) {
+        try {
+            const result = await strapi.service('api::ranking.ranking').resetCurrentSeason();
+            return ctx.send({ data: result });
+        } catch (err) {
+            return ctx.internalServerError(err.message);
+        }
     }
 }));

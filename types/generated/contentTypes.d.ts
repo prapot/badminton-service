@@ -571,6 +571,7 @@ export interface ApiMatchHistoryMatchHistory
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    is_win: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -578,11 +579,11 @@ export interface ApiMatchHistoryMatchHistory
     > &
       Schema.Attribute.Private;
     matches: Schema.Attribute.Relation<'manyToMany', 'api::match.match'>;
-    mmr_change: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    new_mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    old_mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    new_rp: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    old_rp: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     ranking: Schema.Attribute.Relation<'manyToOne', 'api::ranking.ranking'>;
+    rp_change: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -713,6 +714,7 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    brave_points: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -728,11 +730,11 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
       'api::match-history.match-history'
     >;
     match_played: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    mmr: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1500>;
     point_against: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     point_for: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     rank: Schema.Attribute.String & Schema.Attribute.DefaultTo<'Gold III'>;
+    ranking_points: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     season: Schema.Attribute.Relation<'manyToOne', 'api::season.season'>;
     stars: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<2>;
     updatedAt: Schema.Attribute.DateTime;
