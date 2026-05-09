@@ -296,18 +296,42 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
 
     async recalibrateSeason() {
         const activeSeason = await this.getOrCreateCurrentSeason();
+        
+        // Filter matches within the active season's date range
         const matches = await strapi.db.query('api::match.match').findMany({
-            where: { match_status: 'done' }, // Process ALL done matches for stats
+            where: { 
+                match_status: 'done',
+                createdAt: {
+                    $gte: activeSeason.start_date + "T00:00:00.000Z",
+                    $lte: activeSeason.end_date + "T23:59:59.999Z"
+                }
+            },
             orderBy: { createdAt: 'asc' },
             populate: ['tournament_id', 'team_a_id.team_players.user_id', 'team_b_id.team_players.user_id']
         });
 
-        console.log(`[Recalibrate] Resetting and re-processing ${matches.length} matches...`);
+        console.log(`[Recalibrate] Resetting and re-processing ${matches.length} matches for ${activeSeason.name}...`);
 
-        // Clear everything for this season to avoid duplicates
-        await strapi.db.query('api::ranking.ranking').deleteMany({ where: { season: activeSeason.id } });
-        await strapi.db.query('api::match-history.match-history').deleteMany({});
+        // 1. Find all ranking IDs for this season
+        const rankingsToReset = await strapi.db.query('api::ranking.ranking').findMany({
+            where: { season: activeSeason.id },
+            select: ['id']
+        });
+        const rankingIds = rankingsToReset.map(r => r.id);
 
+        if (rankingIds.length > 0) {
+            // 2. Delete match history ONLY for these rankings
+            await strapi.db.query('api::match-history.match-history').deleteMany({
+                where: { ranking: { id: { $in: rankingIds } } }
+            });
+
+            // 3. Reset the rankings themselves
+            await strapi.db.query('api::ranking.ranking').deleteMany({
+                where: { id: { $in: rankingIds } }
+            });
+        }
+
+        // 4. Re-process matches for the current season
         for (const m of matches) {
             const scoreA = m.score_a || 0;
             const scoreB = m.score_b || 0;
@@ -325,6 +349,6 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 await this.recordMatch(winners, losers, isWinnerA ? scoreA : scoreB, isWinnerA ? scoreB : scoreA, m.id, isRankingMode);
             }
         }
-        return { count: matches.length };
+        return { count: matches.length, season: activeSeason.name };
     }
 }));
