@@ -107,7 +107,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             }
 
             const rankInfo = this.getRankInfoFromPoints(newRp);
-            console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}`);
+            console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
                 where: { id: ranking.id },
@@ -173,7 +173,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             }
 
             const rankInfo = this.getRankInfoFromPoints(newRp);
-            console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}`);
+            console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
                 where: { id: ranking.id },
@@ -257,25 +257,25 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
     // Simplified points to rank logic
     getRankInfoFromPoints(points: number) {
         const TIERS = [
-            { name: 'Bronze', div: 5, stars: 4 },
-            { name: 'Silver', div: 5, stars: 4 },
-            { name: 'Gold', div: 5, stars: 5 },
-            { name: 'Platinum', div: 5, stars: 5 },
-            { name: 'Diamond', div: 5, stars: 5 },
-            { name: 'Master', div: 1, stars: 99999 }
+            { name: 'Bronze', divisions: 5, starsPerDiv: 4 },
+            { name: 'Silver', divisions: 5, starsPerDiv: 4 },
+            { name: 'Gold', divisions: 5, starsPerDiv: 5 },
+            { name: 'Platinum', divisions: 5, starsPerDiv: 6 },
+            { name: 'Diamond', divisions: 5, starsPerDiv: 6 },
+            { name: 'Master', divisions: 1, starsPerDiv: 99999 }
         ];
         const DIVS = ['V', 'IV', 'III', 'II', 'I'];
 
         let p = points;
         for (const t of TIERS) {
-            const tierMax = t.div * t.stars * 100;
+            const tierMax = t.divisions * t.starsPerDiv * 100;
             if (p < tierMax || t.name === 'Master') {
                 if (t.name === 'Master') {
                     const s = Math.floor(p / 100);
                     return { tier: 'Master', division: '', divisionNum: 1, stars: s, rankStr: 'Master', weight: 6000 + (s * 10) };
                 }
-                const divIdx = Math.floor(p / (t.stars * 100));
-                const stars = Math.floor((p % (t.stars * 100)) / 100);
+                const divIdx = Math.floor(p / (t.starsPerDiv * 100));
+                const stars = Math.floor((p % (t.starsPerDiv * 100)) / 100);
                 return {
                     tier: t.name,
                     division: DIVS[divIdx],
