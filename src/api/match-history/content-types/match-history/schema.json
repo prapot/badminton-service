@@ -7,7 +7,7 @@
     "displayName": "match_history"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -44,6 +44,12 @@
     "is_win": {
       "type": "boolean",
       "default": false
+    },
+    "rank_before": {
+      "type": "string"
+    },
+    "rank_after": {
+      "type": "string"
     }
   }
 }

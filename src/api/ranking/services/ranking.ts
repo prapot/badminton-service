@@ -1,15 +1,6 @@
+
 import { factories } from '@strapi/strapi';
 
-const TIERS = [
-    { name: 'Bronze', divisions: 5, starsPerDiv: 3, weight: 1 },
-    { name: 'Silver', divisions: 5, starsPerDiv: 3, weight: 2 },
-    { name: 'Gold', divisions: 5, starsPerDiv: 4, weight: 3 },
-    { name: 'Platinum', divisions: 5, starsPerDiv: 5, weight: 4 },
-    { name: 'Diamond', divisions: 5, starsPerDiv: 5, weight: 5 },
-    { name: 'Master', divisions: 1, starsPerDiv: 999999, weight: 6 }
-];
-
-const DIVISIONS = ['V', 'IV', 'III', 'II', 'I'];
 const BRAVE_POINTS_CAP = 100;
 
 export default factories.createCoreService('api::ranking.ranking', ({ strapi }) => ({
@@ -18,136 +9,53 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         const monthStr = now.toISOString().slice(0, 7);
         const seasonName = `Season ${monthStr}`;
 
-        let currentSeason = await strapi.documents('api::season.season').findFirst({
-            filters: { name: seasonName },
-            status: 'published'
-        });
+        let currentSeason = await strapi.db.query('api::season.season').findOne({
+            where: { name: seasonName },
+        }) as any;
 
         if (!currentSeason) {
-            console.log(`[Cron/Service] Transitioning to new season: ${seasonName}`);
-            const activeSeasons = await strapi.documents('api::season.season').findMany({
-                filters: { is_active: true }
-            });
-            for (const s of activeSeasons) {
-                await strapi.documents('api::season.season').update({
-                    documentId: s.documentId,
-                    data: { is_active: false },
-                    status: 'published'
-                });
-            }
-
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-            currentSeason = await strapi.documents('api::season.season').create({
+            currentSeason = await strapi.db.query('api::season.season').create({
                 data: {
                     name: seasonName,
                     is_active: true,
                     start_date: startOfMonth.toISOString().split('T')[0],
                     end_date: endOfMonth.toISOString().split('T')[0]
                 },
-                status: 'published'
+            });
+        } else if (!currentSeason.is_active) {
+            await strapi.db.query('api::season.season').update({
+                where: { id: currentSeason.id },
+                data: { is_active: true }
             });
         }
         return currentSeason;
     },
 
-    calculateBravePoints(isWin: boolean, winnerScore: number, loserScore: number, winStreak: number) {
-        let points = 0;
-        const scoreDiff = Math.abs(winnerScore - loserScore);
-        if (isWin) {
-            points += 15; // Base win
-            if (winStreak >= 3) points += 10;
-            if (scoreDiff >= 10) points += 5;
-        } else {
-            if (scoreDiff <= 2) points += 10;
-        }
-        return points;
-    },
-
-    getRankInfoFromPoints(points: number) {
-        let p = Math.max(0, points);
-        for (const tier of TIERS) {
-            if (tier.name === 'Master') {
-                return {
-                    tier: 'Master',
-                    division: '',
-                    stars: Math.floor(p / 100),
-                    rankStr: 'Master',
-                    weight: tier.weight
-                };
-            }
-            const tierMax = tier.divisions * tier.starsPerDiv * 100;
-            if (p < tierMax) {
-                const divIdx = Math.floor(p / (tier.starsPerDiv * 100));
-                const divStars = Math.floor((p % (tier.starsPerDiv * 100)) / 100);
-                const rankStr = `${tier.name} ${DIVISIONS[divIdx]}`;
-                return {
-                    tier: tier.name,
-                    division: DIVISIONS[divIdx],
-                    stars: divStars,
-                    rankStr: rankStr,
-                    weight: tier.weight
-                };
-            }
-            p -= tierMax;
-        }
-        return { tier: 'Bronze', division: 'V', stars: 0, rankStr: 'Bronze V', weight: 1 };
-    },
-
-    calculateSoftReset(oldPoints: number) {
-        const { tier } = this.getRankInfoFromPoints(oldPoints);
-        let resetPoints = 0;
-
-        // Reset points to the beginning of a lower tier
-        // Bronze: stays Bronze V (0)
-        // Silver: -> Silver V
-        // Gold: -> Silver V
-        // Platinum: -> Gold V
-        // Diamond: -> Platinum V
-        // Master: -> Diamond V
-
-        if (tier === 'Master') resetPoints = 1500 + 1500 + 2000 + 2500; // Diamond V base
-        else if (tier === 'Diamond') resetPoints = 1500 + 1500 + 2000; // Platinum V base
-        else if (tier === 'Platinum') resetPoints = 1500 + 1500; // Gold V base
-        else if (tier === 'Gold') resetPoints = 1500; // Silver V base
-        else if (tier === 'Silver') resetPoints = 1500; // Silver V base
-        else resetPoints = 0;
-
-        return {
-            ranking_points: resetPoints,
-            brave_points: 0
-        };
-    },
-
     async getOrCreateRanking(userId: any, activeSeason: any) {
-        let ranking = await strapi.documents('api::ranking.ranking').findFirst({
-            filters: {
-                user_id: { id: userId },
-                season: { documentId: activeSeason.documentId }
+        // Use db.query for maximum stability with IDs
+        let ranking = await strapi.db.query('api::ranking.ranking').findOne({
+            where: {
+                user_id: userId,
+                season: activeSeason.id
             },
-        });
+        }) as any;
 
         if (!ranking) {
-            const lastRanking = await strapi.documents('api::ranking.ranking').findFirst({
-                filters: { user_id: userId },
-                sort: 'createdAt:desc'
-            });
+            const { rankStr, stars, tier, divisionNum } = this.getRankInfoFromPoints(0);
 
-            const { ranking_points, brave_points } = lastRanking
-                ? this.calculateSoftReset((lastRanking as any).ranking_points || 0)
-                : { ranking_points: 0, brave_points: 0 };
-
-            const { rankStr, stars } = this.getRankInfoFromPoints(ranking_points);
-
-            ranking = await strapi.documents('api::ranking.ranking').create({
+            ranking = await strapi.db.query('api::ranking.ranking').create({
                 data: {
                     user_id: userId,
-                    season: activeSeason.documentId,
-                    ranking_points,
-                    brave_points,
+                    season: activeSeason.id,
+                    ranking_points: 0,
+                    brave_points: 0,
                     rank: rankStr,
-                    stars,
+                    stars: stars,
+                    rank_tier: tier,
+                    rank_division: divisionNum,
                     match_played: 0,
                     win: 0,
                     lose: 0,
@@ -155,257 +63,268 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     point_for: 0,
                     point_against: 0
                 },
-                status: 'published'
             });
         }
         return ranking;
     },
 
-    async recordMatch(winners: number[], losers: number[], winnerScore: number, loserScore: number, matchId: string) {
+    async recordMatch(winners: number[], losers: number[], winnerScore: number, loserScore: number, matchId: number, isRankingMode: boolean = false) {
         const activeSeason = await this.getOrCreateCurrentSeason();
 
         const winnerRankings = await Promise.all(winners.map(id => this.getOrCreateRanking(id, activeSeason)));
         const loserRankings = await Promise.all(losers.map(id => this.getOrCreateRanking(id, activeSeason)));
 
-        // Record Winners
-        const updatedWinners = await Promise.all(winnerRankings.map(async (ranking, index) => {
-            const userId = winners[index];
-            const oldRp = (ranking as any).ranking_points || 0;
-            const winStreak = (ranking.win_streak || 0) + 1;
-            const bpGain = this.calculateBravePoints(true, Number(winnerScore), Number(loserScore), winStreak);
+        // Calculate average weights for difficulty adjustment (only if ranking mode)
+        let weightDiff = 0;
+        if (isRankingMode) {
+            const avgWeightWinners = winnerRankings.reduce((sum, r) => sum + this.getRankInfoFromPoints((r as any).ranking_points).weight, 0) / winnerRankings.length;
+            const avgWeightLosers = loserRankings.reduce((sum, r) => sum + this.getRankInfoFromPoints((r as any).ranking_points).weight, 0) / loserRankings.length;
+            weightDiff = avgWeightLosers - avgWeightWinners;
+        }
 
-            let totalBp = (ranking.brave_points || 0) + bpGain;
-            let rpGain = 100;
-            if (totalBp >= BRAVE_POINTS_CAP) {
-                rpGain += 100;
-                totalBp -= BRAVE_POINTS_CAP;
+        // Record Winners
+        await Promise.all(winnerRankings.map(async (ranking: any, index) => {
+            const userId = winners[index];
+            const oldRp = Number(ranking.ranking_points || 0);
+            const oldBp = Number(ranking.brave_points || 0);
+
+            let newRp = oldRp;
+            let newBp = oldBp;
+            let rpGain = 0;
+
+            if (isRankingMode) {
+                let bpGain = this.calculateBravePoints(true);
+                if (weightDiff > 200) bpGain += Math.floor(weightDiff / 20);
+
+                newBp = oldBp + bpGain;
+                rpGain = 100;
+
+                if (newBp >= BRAVE_POINTS_CAP) {
+                    rpGain += 100;
+                    newBp -= BRAVE_POINTS_CAP;
+                }
+                newRp = oldRp + rpGain;
             }
 
-            const newRp = oldRp + rpGain;
-            const { rankStr, stars } = this.getRankInfoFromPoints(newRp);
+            const rankInfo = this.getRankInfoFromPoints(newRp);
+            console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}`);
 
-            const updatedRanking = await strapi.documents('api::ranking.ranking').update({
-                documentId: ranking.documentId,
+            await strapi.db.query('api::ranking.ranking').update({
+                where: { id: ranking.id },
                 data: {
                     ranking_points: newRp,
-                    brave_points: totalBp,
-                    rank: rankStr,
-                    stars: stars,
+                    brave_points: newBp,
+                    rank: rankInfo.rankStr,
+                    stars: rankInfo.stars,
+                    rank_tier: rankInfo.tier,
+                    rank_division: rankInfo.divisionNum,
                     match_played: (ranking.match_played || 0) + 1,
                     win: (ranking.win || 0) + 1,
-                    win_streak: winStreak,
-                    point_for: (ranking.point_for || 0) + Number(winnerScore),
-                    point_against: (ranking.point_against || 0) + Number(loserScore),
-                },
-                status: 'published',
+                    win_streak: (ranking.win_streak || 0) + 1,
+                    point_for: (ranking.point_for || 0) + winnerScore,
+                    point_against: (ranking.point_against || 0) + loserScore
+                }
             });
 
-            await strapi.documents('api::match-history.match-history').create({
+            await strapi.db.query('api::match-history.match-history').create({
                 data: {
-                    users: [userId],
-                    matches: [matchId],
+                    ranking: ranking.id,
+                    matches: matchId, // Using numeric id here
                     old_rp: oldRp,
                     new_rp: newRp,
                     rp_change: rpGain,
-                    ranking: (updatedRanking as any).documentId,
-                    is_win: true
-                },
-                status: 'published',
+                    is_win: true,
+                    users: userId,
+                    point_for: winnerScore,
+                    point_against: loserScore
+                }
             });
-
-            return updatedRanking;
         }));
 
         // Record Losers
-        const updatedLosers = await Promise.all(loserRankings.map(async (ranking, index) => {
+        await Promise.all(loserRankings.map(async (ranking: any, index) => {
             const userId = losers[index];
-            const oldRp = (ranking as any).ranking_points || 0;
-            const bpGain = this.calculateBravePoints(false, Number(winnerScore), Number(loserScore), 0);
+            const oldRp = Number(ranking.ranking_points || 0);
+            const oldBp = Number(ranking.brave_points || 0);
 
-            let totalBp = (ranking.brave_points || 0) + bpGain;
-            let rpLoss = 100;
-            if (totalBp >= BRAVE_POINTS_CAP) {
-                rpLoss = 0; // Protection
-                totalBp -= BRAVE_POINTS_CAP;
+            const oldRankInfo = this.getRankInfoFromPoints(oldRp);
+            let newRp = oldRp;
+            let newBp = oldBp;
+            let rpLoss = 0;
+
+            if (isRankingMode) {
+                let bpGain = this.calculateBravePoints(false);
+                if (weightDiff < -500) bpGain += 10;
+
+                newBp = oldBp + bpGain;
+
+                // Bronze Protection: No star loss in Bronze rank
+                if (oldRankInfo.tier === 'Bronze') {
+                    rpLoss = 0;
+                } else {
+                    rpLoss = 100;
+                    // General Protection: Use Brave Points if full
+                    if (newBp >= BRAVE_POINTS_CAP) {
+                        rpLoss = 0;
+                        newBp -= BRAVE_POINTS_CAP;
+                    }
+                }
+                newRp = Math.max(0, oldRp - rpLoss);
             }
 
-            // Bronze floor protection
-            let newRp = oldRp - rpLoss;
-            if (newRp < 0) newRp = 0;
+            const rankInfo = this.getRankInfoFromPoints(newRp);
+            console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}`);
 
-            const { rankStr, stars } = this.getRankInfoFromPoints(newRp);
-
-            const updatedRanking = await strapi.documents('api::ranking.ranking').update({
-                documentId: ranking.documentId,
+            await strapi.db.query('api::ranking.ranking').update({
+                where: { id: ranking.id },
                 data: {
                     ranking_points: newRp,
-                    brave_points: totalBp,
-                    rank: rankStr,
-                    stars: stars,
+                    brave_points: newBp,
+                    rank: rankInfo.rankStr,
+                    stars: rankInfo.stars,
+                    rank_tier: rankInfo.tier,
+                    rank_division: rankInfo.divisionNum,
                     match_played: (ranking.match_played || 0) + 1,
                     lose: (ranking.lose || 0) + 1,
                     win_streak: 0,
-                    point_for: (ranking.point_for || 0) + Number(loserScore),
-                    point_against: (ranking.point_against || 0) + Number(winnerScore),
-                },
-                status: 'published',
+                    point_for: (ranking.point_for || 0) + loserScore,
+                    point_against: (ranking.point_against || 0) + winnerScore
+                }
             });
 
-            await strapi.documents('api::match-history.match-history').create({
+            await strapi.db.query('api::match-history.match-history').create({
                 data: {
-                    users: [userId],
-                    matches: [matchId],
+                    ranking: ranking.id,
+                    matches: matchId, // Using numeric id here
                     old_rp: oldRp,
                     new_rp: newRp,
                     rp_change: -rpLoss,
-                    ranking: (updatedRanking as any).documentId,
-                    is_win: false
-                },
-                status: 'published',
+                    is_win: false,
+                    users: userId,
+                    point_for: loserScore,
+                    point_against: winnerScore
+                }
             });
-
-            return updatedRanking;
         }));
-
-        return { winners: updatedWinners, losers: updatedLosers };
     },
 
-    async revertMatch(matchId: string) {
-        const histories = await strapi.documents('api::match-history.match-history').findMany({
-            filters: { matches: { documentId: matchId } },
-            populate: ['users', 'ranking']
+    async revertMatch(matchId: number) {
+        // Find all history for this match (using numeric ID for the link table)
+        const histories = await strapi.db.query('api::match-history.match-history').findMany({
+            where: { matches: matchId },
+            populate: ['ranking']
         });
 
-        if (histories.length === 0) return { message: 'No history found to revert', reverted: 0 };
+        if (histories.length === 0) return;
 
-        const revertedResults = await Promise.all(histories.map(async (history: any) => {
+        console.log(`[Ranking Service] Reverting ${histories.length} history records for match ${matchId}...`);
+
+        for (const history of histories) {
             const ranking = history.ranking;
-            if (!ranking) return null;
+            if (!ranking) continue;
 
-            const { rankStr, stars } = this.getRankInfoFromPoints(history.old_rp);
+            const rpChange = Number(history.rp_change || 0);
+            const isWin = history.is_win;
+            const pFor = Number(history.point_for || 0);
+            const pAgainst = Number(history.point_against || 0);
 
-            const updatedRanking = await strapi.documents('api::ranking.ranking').update({
-                documentId: ranking.documentId,
+            const newRp = Math.max(0, (ranking.ranking_points || 0) - rpChange);
+            const rankInfo = this.getRankInfoFromPoints(newRp);
+
+            await strapi.db.query('api::ranking.ranking').update({
+                where: { id: ranking.id },
                 data: {
-                    ranking_points: history.old_rp,
-                    rank: rankStr,
-                    stars: stars,
+                    ranking_points: newRp,
+                    rank: rankInfo.rankStr,
+                    stars: rankInfo.stars,
+                    rank_tier: rankInfo.tier,
+                    rank_division: rankInfo.divisionNum,
                     match_played: Math.max(0, (ranking.match_played || 0) - 1),
-                    win: (history.is_win || (history.is_win === undefined && history.rp_change > 0)) ? Math.max(0, (ranking.win || 0) - 1) : ranking.win,
-                    lose: (!history.is_win || (history.is_win === undefined && history.rp_change <= 0)) ? Math.max(0, (ranking.lose || 0) - 1) : ranking.lose,
-                },
-                status: 'published'
+                    win: isWin ? Math.max(0, (ranking.win || 0) - 1) : ranking.win,
+                    lose: !isWin ? Math.max(0, (ranking.lose || 0) - 1) : ranking.lose,
+                    point_for: Math.max(0, (ranking.point_for || 0) - pFor),
+                    point_against: Math.max(0, (ranking.point_against || 0) - pAgainst)
+                }
             });
+        }
 
-            await strapi.documents('api::match-history.match-history').delete({
-                documentId: history.documentId
-            });
-
-            return updatedRanking;
-        }));
-
-        return { revertedCount: revertedResults.filter(Boolean).length };
+        // Delete the history records
+        await strapi.db.query('api::match-history.match-history').deleteMany({
+            where: { matches: matchId }
+        });
     },
 
-    async getBalancedTeams(playerIds: number[]) {
-        const activeSeason = await this.getOrCreateCurrentSeason();
-        const playerRankings = await Promise.all(playerIds.map(id => this.getOrCreateRanking(id, activeSeason)));
-
-        const players = playerRankings.map((r, i) => {
-            const info = this.getRankInfoFromPoints((r as any).ranking_points);
-            return {
-                userId: playerIds[i],
-                weight: info.weight,
-                rank: info.rankStr
-            };
-        });
-
-        const combinations = [
-            { team1: [players[0], players[1]], team2: [players[2], players[3]] },
-            { team1: [players[0], players[2]], team2: [players[1], players[3]] },
-            { team1: [players[0], players[3]], team2: [players[1], players[2]] }
+    // Simplified points to rank logic
+    getRankInfoFromPoints(points: number) {
+        const TIERS = [
+            { name: 'Bronze', div: 5, stars: 4 },
+            { name: 'Silver', div: 5, stars: 4 },
+            { name: 'Gold', div: 5, stars: 5 },
+            { name: 'Platinum', div: 5, stars: 5 },
+            { name: 'Diamond', div: 5, stars: 5 },
+            { name: 'Master', div: 1, stars: 99999 }
         ];
+        const DIVS = ['V', 'IV', 'III', 'II', 'I'];
 
-        let bestCombination = combinations[0];
-        let minDiff = Infinity;
-
-        for (const combo of combinations) {
-            const team1Weight = combo.team1.reduce((sum, p) => sum + p.weight, 0);
-            const team2Weight = combo.team2.reduce((sum, p) => sum + p.weight, 0);
-            const diff = Math.abs(team1Weight - team2Weight);
-            if (diff < minDiff) {
-                minDiff = diff;
-                bestCombination = combo;
+        let p = points;
+        for (const t of TIERS) {
+            const tierMax = t.div * t.stars * 100;
+            if (p < tierMax || t.name === 'Master') {
+                if (t.name === 'Master') {
+                    const s = Math.floor(p / 100);
+                    return { tier: 'Master', division: '', divisionNum: 1, stars: s, rankStr: 'Master', weight: 6000 + (s * 10) };
+                }
+                const divIdx = Math.floor(p / (t.stars * 100));
+                const stars = Math.floor((p % (t.stars * 100)) / 100);
+                return {
+                    tier: t.name,
+                    division: DIVS[divIdx],
+                    divisionNum: 5 - divIdx,
+                    stars: stars,
+                    rankStr: `${t.name} ${DIVS[divIdx]}`,
+                    weight: 1000 + (TIERS.indexOf(t) * 1000) + (divIdx * 200) + (stars * 50)
+                };
             }
+            p -= tierMax;
         }
-
-        return { bestCombination, weightDiff: minDiff };
+        return { tier: 'Bronze', division: 'V', divisionNum: 5, stars: 0, rankStr: 'Bronze V', weight: 1000 };
     },
 
-    async getSeasonHistory(userId: number) {
-        const activeSeason = await this.getOrCreateCurrentSeason();
-        const ranking = await strapi.documents('api::ranking.ranking').findFirst({
-            filters: {
-                user_id: { id: userId },
-                season: { documentId: activeSeason.documentId }
-            }
-        });
-
-        if (!ranking) return [];
-
-        return await strapi.documents('api::match-history.match-history').findMany({
-            filters: { ranking: { documentId: ranking.documentId } },
-            populate: ['matches', 'matches.team_a_id', 'matches.team_b_id', 'matches.team_winner'],
-            sort: 'createdAt:desc'
-        });
+    calculateBravePoints(isWin: boolean) {
+        return isWin ? 20 : 10;
     },
 
-    async resetCurrentSeason() {
+    async recalibrateSeason() {
         const activeSeason = await this.getOrCreateCurrentSeason();
-
-        // 1. Get all rankings for current season
-        const rankings = await strapi.documents('api::ranking.ranking').findMany({
-            filters: { season: { documentId: activeSeason.documentId } },
-            fields: ['documentId']
+        const matches = await strapi.db.query('api::match.match').findMany({
+            where: { match_status: 'done' }, // Process ALL done matches for stats
+            orderBy: { createdAt: 'asc' },
+            populate: ['tournament_id', 'team_a_id.team_players.user_id', 'team_b_id.team_players.user_id']
         });
 
-        const ids = rankings.map(r => (r as any).documentId);
+        console.log(`[Recalibrate] Resetting and re-processing ${matches.length} matches...`);
 
-        // 2. Reset each ranking
-        for (const docId of ids) {
-            await strapi.documents('api::ranking.ranking').update({
-                documentId: docId,
-                data: {
-                    ranking_points: 0,
-                    brave_points: 0,
-                    rank: 'Bronze V',
-                    stars: 0,
-                    match_played: 0,
-                    win: 0,
-                    lose: 0,
-                    win_streak: 0,
-                    point_for: 0,
-                    point_against: 0
-                } as any,
-                status: 'published'
-            });
-        }
+        // Clear everything for this season to avoid duplicates
+        await strapi.db.query('api::ranking.ranking').deleteMany({ where: { season: activeSeason.id } });
+        await strapi.db.query('api::match-history.match-history').deleteMany({});
 
-        // 3. Delete match histories for this season
-        if (ids.length > 0) {
-            const histories = await strapi.documents('api::match-history.match-history').findMany({
-                filters: { ranking: { documentId: { $in: ids } } },
-                fields: ['documentId']
-            });
+        for (const m of matches) {
+            const scoreA = m.score_a || 0;
+            const scoreB = m.score_b || 0;
+            if (scoreA === scoreB) continue;
 
-            for (const h of histories) {
-                await strapi.documents('api::match-history.match-history').delete({
-                    documentId: (h as any).documentId
-                });
+            const isWinnerA = scoreA > scoreB;
+            const winnerTeam = isWinnerA ? m.team_a_id : m.team_b_id;
+            const loserTeam = isWinnerA ? m.team_b_id : m.team_a_id;
+
+            const winners = winnerTeam.team_players?.map(tp => tp.user_id?.id).filter(Boolean);
+            const losers = loserTeam.team_players?.map(tp => tp.user_id?.id).filter(Boolean);
+
+            if (winners?.length > 0 && losers?.length > 0) {
+                const isRankingMode = m.tournament_id?.mode === 'ranking';
+                await this.recordMatch(winners, losers, isWinnerA ? scoreA : scoreB, isWinnerA ? scoreB : scoreA, m.id, isRankingMode);
             }
-            return { resetCount: ids.length, historyDeleted: histories.length };
         }
-
-        return { resetCount: 0, historyDeleted: 0 };
+        return { count: matches.length };
     }
 }));

@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-05-07T19:59:38.284Z"
+    "x-generation-date": "2026-05-09T05:22:44.966Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -11311,6 +11311,12 @@
                                                 "brave_points": {
                                                   "type": "integer"
                                                 },
+                                                "rank_tier": {
+                                                  "type": "string"
+                                                },
+                                                "rank_division": {
+                                                  "type": "integer"
+                                                },
                                                 "match_histories": {
                                                   "type": "array",
                                                   "items": {
@@ -11408,6 +11414,12 @@
                                             },
                                             "is_win": {
                                               "type": "boolean"
+                                            },
+                                            "rank_before": {
+                                              "type": "string"
+                                            },
+                                            "rank_after": {
+                                              "type": "string"
                                             },
                                             "createdAt": {
                                               "type": "string",
@@ -13050,6 +13062,12 @@
               "is_win": {
                 "type": "boolean"
               },
+              "rank_before": {
+                "type": "string"
+              },
+              "rank_after": {
+                "type": "string"
+              },
               "locale": {
                 "type": "string"
               },
@@ -14344,6 +14362,12 @@
                                               "brave_points": {
                                                 "type": "integer"
                                               },
+                                              "rank_tier": {
+                                                "type": "string"
+                                              },
+                                              "rank_division": {
+                                                "type": "integer"
+                                              },
                                               "match_histories": {
                                                 "type": "array",
                                                 "items": {
@@ -14441,6 +14465,12 @@
                                           },
                                           "is_win": {
                                             "type": "boolean"
+                                          },
+                                          "rank_before": {
+                                            "type": "string"
+                                          },
+                                          "rank_after": {
+                                            "type": "string"
                                           },
                                           "createdAt": {
                                             "type": "string",
@@ -15778,6 +15808,12 @@
           },
           "is_win": {
             "type": "boolean"
+          },
+          "rank_before": {
+            "type": "string"
+          },
+          "rank_after": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",
@@ -17168,6 +17204,12 @@
                                   "brave_points": {
                                     "type": "integer"
                                   },
+                                  "rank_tier": {
+                                    "type": "string"
+                                  },
+                                  "rank_division": {
+                                    "type": "integer"
+                                  },
                                   "match_histories": {
                                     "type": "array",
                                     "items": {
@@ -17257,6 +17299,12 @@
                                         },
                                         "is_win": {
                                           "type": "boolean"
+                                        },
+                                        "rank_before": {
+                                          "type": "string"
+                                        },
+                                        "rank_after": {
+                                          "type": "string"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -19286,6 +19334,12 @@
               "brave_points": {
                 "type": "integer"
               },
+              "rank_tier": {
+                "type": "string"
+              },
+              "rank_division": {
+                "type": "integer"
+              },
               "match_histories": {
                 "type": "array",
                 "items": {
@@ -20592,6 +20646,12 @@
                                             "brave_points": {
                                               "type": "integer"
                                             },
+                                            "rank_tier": {
+                                              "type": "string"
+                                            },
+                                            "rank_division": {
+                                              "type": "integer"
+                                            },
                                             "match_histories": {
                                               "type": "array",
                                               "items": {
@@ -20689,6 +20749,12 @@
                                         },
                                         "is_win": {
                                           "type": "boolean"
+                                        },
+                                        "rank_before": {
+                                          "type": "string"
+                                        },
+                                        "rank_after": {
+                                          "type": "string"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -22023,6 +22089,12 @@
           "brave_points": {
             "type": "integer"
           },
+          "rank_tier": {
+            "type": "string"
+          },
+          "rank_division": {
+            "type": "integer"
+          },
           "match_histories": {
             "type": "array",
             "items": {
@@ -23321,6 +23393,12 @@
                                               },
                                               "is_win": {
                                                 "type": "boolean"
+                                              },
+                                              "rank_before": {
+                                                "type": "string"
+                                              },
+                                              "rank_after": {
+                                                "type": "string"
                                               },
                                               "createdAt": {
                                                 "type": "string",
@@ -24760,6 +24838,12 @@
                   "type": "integer"
                 },
                 "brave_points": {
+                  "type": "integer"
+                },
+                "rank_tier": {
+                  "type": "string"
+                },
+                "rank_division": {
                   "type": "integer"
                 },
                 "match_histories": {
@@ -26222,6 +26306,12 @@
                                                 "brave_points": {
                                                   "type": "integer"
                                                 },
+                                                "rank_tier": {
+                                                  "type": "string"
+                                                },
+                                                "rank_division": {
+                                                  "type": "integer"
+                                                },
                                                 "match_histories": {
                                                   "type": "array",
                                                   "items": {
@@ -26319,6 +26409,12 @@
                                             },
                                             "is_win": {
                                               "type": "boolean"
+                                            },
+                                            "rank_before": {
+                                              "type": "string"
+                                            },
+                                            "rank_after": {
+                                              "type": "string"
                                             },
                                             "createdAt": {
                                               "type": "string",
@@ -28984,6 +29080,12 @@
                                   "brave_points": {
                                     "type": "integer"
                                   },
+                                  "rank_tier": {
+                                    "type": "string"
+                                  },
+                                  "rank_division": {
+                                    "type": "integer"
+                                  },
                                   "match_histories": {
                                     "type": "array",
                                     "items": {
@@ -29402,6 +29504,12 @@
                                         },
                                         "is_win": {
                                           "type": "boolean"
+                                        },
+                                        "rank_before": {
+                                          "type": "string"
+                                        },
+                                        "rank_after": {
+                                          "type": "string"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -31850,6 +31958,12 @@
                                           "brave_points": {
                                             "type": "integer"
                                           },
+                                          "rank_tier": {
+                                            "type": "string"
+                                          },
+                                          "rank_division": {
+                                            "type": "integer"
+                                          },
                                           "match_histories": {
                                             "type": "array",
                                             "items": {
@@ -32268,6 +32382,12 @@
                                                 },
                                                 "is_win": {
                                                   "type": "boolean"
+                                                },
+                                                "rank_before": {
+                                                  "type": "string"
+                                                },
+                                                "rank_after": {
+                                                  "type": "string"
                                                 },
                                                 "createdAt": {
                                                   "type": "string",
@@ -34878,6 +34998,12 @@
                                                 "brave_points": {
                                                   "type": "integer"
                                                 },
+                                                "rank_tier": {
+                                                  "type": "string"
+                                                },
+                                                "rank_division": {
+                                                  "type": "integer"
+                                                },
                                                 "match_histories": {
                                                   "type": "array",
                                                   "items": {
@@ -34975,6 +35101,12 @@
                                             },
                                             "is_win": {
                                               "type": "boolean"
+                                            },
+                                            "rank_before": {
+                                              "type": "string"
+                                            },
+                                            "rank_after": {
+                                              "type": "string"
                                             },
                                             "createdAt": {
                                               "type": "string",

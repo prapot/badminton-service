@@ -7,7 +7,7 @@
     "displayName": "team_player"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {

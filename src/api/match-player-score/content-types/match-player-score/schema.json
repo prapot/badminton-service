@@ -7,7 +7,7 @@
     "displayName": "match_player_score"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {

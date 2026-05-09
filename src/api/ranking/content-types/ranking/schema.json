@@ -7,7 +7,7 @@
     "displayName": "ranking"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -62,6 +62,12 @@
     "brave_points": {
       "type": "integer",
       "default": 0
+    },
+    "rank_tier": {
+      "type": "string"
+    },
+    "rank_division": {
+      "type": "integer"
     },
     "match_histories": {
       "type": "relation",

@@ -148,9 +148,9 @@ export default factories.createCoreController('api::ranking.ranking', ({ strapi 
             return ctx.internalServerError(err.message);
         }
     },
-    async resetCurrentSeason(ctx) {
+    async recalibrateSeason(ctx) {
         try {
-            const result = await strapi.service('api::ranking.ranking').resetCurrentSeason();
+            const result = await strapi.service('api::ranking.ranking').recalibrateSeason();
             return ctx.send({ data: result });
         } catch (err) {
             return ctx.internalServerError(err.message);

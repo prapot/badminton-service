@@ -50,8 +50,8 @@ export default {
         },
         {
             method: 'POST',
-            path: '/rankings/reset-current-season',
-            handler: 'ranking.resetCurrentSeason',
+            path: '/rankings/recalibrate-season',
+            handler: 'ranking.recalibrateSeason',
             config: {
                 auth: false,
             },

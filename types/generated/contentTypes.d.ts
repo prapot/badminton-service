@@ -565,7 +565,7 @@ export interface ApiMatchHistoryMatchHistory
     singularName: 'match-history';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -582,6 +582,8 @@ export interface ApiMatchHistoryMatchHistory
     new_rp: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     old_rp: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
+    rank_after: Schema.Attribute.String;
+    rank_before: Schema.Attribute.String;
     ranking: Schema.Attribute.Relation<'manyToOne', 'api::ranking.ranking'>;
     rp_change: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
@@ -603,7 +605,7 @@ export interface ApiMatchPlayerScoreMatchPlayerScore
     singularName: 'match-player-score';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -636,7 +638,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     singularName: 'match';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -711,7 +713,7 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
     singularName: 'ranking';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     brave_points: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
@@ -734,6 +736,8 @@ export interface ApiRankingRanking extends Struct.CollectionTypeSchema {
     point_for: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     rank: Schema.Attribute.String & Schema.Attribute.DefaultTo<'Gold III'>;
+    rank_division: Schema.Attribute.Integer;
+    rank_tier: Schema.Attribute.String;
     ranking_points: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     season: Schema.Attribute.Relation<'manyToOne', 'api::season.season'>;
     stars: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<2>;
@@ -757,7 +761,7 @@ export interface ApiSeasonSeason extends Struct.CollectionTypeSchema {
     singularName: 'season';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -789,7 +793,7 @@ export interface ApiTeamPlayerTeamPlayer extends Struct.CollectionTypeSchema {
     singularName: 'team-player';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -821,7 +825,7 @@ export interface ApiTeamTeam extends Struct.CollectionTypeSchema {
     singularName: 'team';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;

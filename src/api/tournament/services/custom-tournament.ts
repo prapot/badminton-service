@@ -215,20 +215,12 @@ export default () => ({
                 // Rank Balance: penalize imbalanced teams (high rank + high rank vs low rank + low rank)
                 const getSkillScore = (p: any): number => {
                   const r = p.rankings?.[0];
-                  if (!r?.rank) return 0; // Bronze 0 (new player / after re-rank)
-                  const name = (r.rank || '').toLowerCase();
-                  const stars = r.stars || 0;
-                  if (name.includes('master')) return 25 + stars;
-                  if (name.includes('diamond')) return 19 + stars;
-                  if (name.includes('platinum')) return 13 + stars;
-                  if (name.includes('gold')) return 8 + stars;
-                  if (name.includes('silver')) return 4 + stars;
-                  if (name.includes('bronze')) return 0 + stars;
-                  return 0;
+                  // Use the centralized ranking service to get the granular weight
+                  return (strapi.service('api::ranking.ranking') as any).getRankInfoFromPoints(r?.ranking_points || 0).weight;
                 };
                 const avgSkillA = tA.reduce((s: number, p: any) => s + getSkillScore(p), 0) / tA.length;
                 const avgSkillB = tB.reduce((s: number, p: any) => s + getSkillScore(p), 0) / tB.length;
-                score += Math.abs(avgSkillA - avgSkillB) * 800;
+                score += Math.abs(avgSkillA - avgSkillB) * 1.5; // Adjusted sensitivity for weight difference
                 i += 4;
               }
               if (shuffled.length - i === 2) {
