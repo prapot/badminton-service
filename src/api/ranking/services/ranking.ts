@@ -17,6 +17,13 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
+            // Deactivate ALL other active seasons before creating the new one
+            await strapi.db.query('api::season.season').updateMany({
+                where: { is_active: true },
+                data: { is_active: false },
+            });
+            console.log(`[Season] Deactivated all previous active seasons.`);
+
             currentSeason = await strapi.db.query('api::season.season').create({
                 data: {
                     name: seasonName,
@@ -25,12 +32,29 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     end_date: endOfMonth.toISOString().split('T')[0]
                 },
             });
+            console.log(`[Season] Created new season: ${seasonName}`);
         } else if (!currentSeason.is_active) {
+            // Re-activating current month's season — deactivate others first
+            await strapi.db.query('api::season.season').updateMany({
+                where: { is_active: true, id: { $ne: currentSeason.id } },
+                data: { is_active: false },
+            });
             await strapi.db.query('api::season.season').update({
                 where: { id: currentSeason.id },
                 data: { is_active: true }
             });
+            console.log(`[Season] Re-activated season: ${seasonName}, deactivated others.`);
+        } else {
+            // Current season already active — still ensure no other season is also active
+            const deactivated = await strapi.db.query('api::season.season').updateMany({
+                where: { is_active: true, id: { $ne: currentSeason.id } },
+                data: { is_active: false },
+            });
+            if ((deactivated as any)?.count > 0) {
+                console.log(`[Season] Cleaned up ${(deactivated as any).count} stale active season(s).`);
+            }
         }
+
         return currentSeason;
     },
 
