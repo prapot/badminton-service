@@ -281,11 +281,11 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
     // Simplified points to rank logic
     getRankInfoFromPoints(points: number) {
         const TIERS = [
-            { name: 'Bronze', divisions: 5, starsPerDiv: 4 },
-            { name: 'Silver', divisions: 5, starsPerDiv: 4 },
-            { name: 'Gold', divisions: 5, starsPerDiv: 5 },
-            { name: 'Platinum', divisions: 5, starsPerDiv: 6 },
-            { name: 'Diamond', divisions: 5, starsPerDiv: 6 },
+            { name: 'Bronze', divisions: 3, starsPerDiv: 3 },
+            { name: 'Silver', divisions: 3, starsPerDiv: 4 },
+            { name: 'Gold', divisions: 4, starsPerDiv: 4 },
+            { name: 'Platinum', divisions: 5, starsPerDiv: 5 },
+            { name: 'Diamond', divisions: 5, starsPerDiv: 5 },
             { name: 'Master', divisions: 1, starsPerDiv: 99999 }
         ];
         const DIVS = ['V', 'IV', 'III', 'II', 'I'];
@@ -300,18 +300,20 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 }
                 const divIdx = Math.floor(p / (t.starsPerDiv * 100));
                 const stars = Math.floor((p % (t.starsPerDiv * 100)) / 100);
+                const activeDivs = DIVS.slice(5 - t.divisions);
+                const divisionStr = activeDivs[divIdx];
                 return {
                     tier: t.name,
-                    division: DIVS[divIdx],
-                    divisionNum: 5 - divIdx,
+                    division: divisionStr,
+                    divisionNum: t.divisions - divIdx,
                     stars: stars,
-                    rankStr: `${t.name} ${DIVS[divIdx]}`,
+                    rankStr: `${t.name} ${divisionStr}`,
                     weight: 1000 + (TIERS.indexOf(t) * 1000) + (divIdx * 200) + (stars * 50)
                 };
             }
             p -= tierMax;
         }
-        return { tier: 'Bronze', division: 'V', divisionNum: 5, stars: 0, rankStr: 'Bronze V', weight: 1000 };
+        return { tier: 'Bronze', division: 'III', divisionNum: 3, stars: 0, rankStr: 'Bronze III', weight: 1000 };
     },
 
     calculateBravePoints(isWin: boolean) {
@@ -320,10 +322,10 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
 
     async recalibrateSeason() {
         const activeSeason = await this.getOrCreateCurrentSeason();
-        
+
         // Filter matches within the active season's date range
         const matches = await strapi.db.query('api::match.match').findMany({
-            where: { 
+            where: {
                 match_status: 'done',
                 createdAt: {
                     $gte: activeSeason.start_date + "T00:00:00.000Z",
