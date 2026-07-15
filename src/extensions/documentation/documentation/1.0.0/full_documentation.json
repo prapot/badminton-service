@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-07-07T02:41:47.799Z"
+    "x-generation-date": "2026-07-15T15:57:25.518Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -11841,6 +11841,9 @@
                                   }
                                 }
                               },
+                              "guest_name": {
+                                "type": "string"
+                              },
                               "createdAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -12568,6 +12571,9 @@
                     "match_offset": {
                       "type": "integer"
                     },
+                    "guest_name": {
+                      "type": "string"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -12693,7 +12699,8 @@
                 "type": "string",
                 "enum": [
                   "casual",
-                  "ranking"
+                  "ranking",
+                  "party"
                 ]
               },
               "user_created": {
@@ -13897,6 +13904,9 @@
                                     "match_offset": {
                                       "type": "integer"
                                     },
+                                    "guest_name": {
+                                      "type": "string"
+                                    },
                                     "createdAt": {
                                       "type": "string",
                                       "format": "date-time"
@@ -14773,7 +14783,8 @@
                                 "type": "string",
                                 "enum": [
                                   "casual",
-                                  "ranking"
+                                  "ranking",
+                                  "party"
                                 ]
                               },
                               "user_created": {
@@ -15038,6 +15049,9 @@
                             "type": "string"
                           }
                         }
+                      },
+                      "guest_name": {
+                        "type": "string"
                       },
                       "createdAt": {
                         "type": "string",
@@ -16938,6 +16952,9 @@
                                       }
                                     }
                                   },
+                                  "guest_name": {
+                                    "type": "string"
+                                  },
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -18198,6 +18215,9 @@
                         "match_offset": {
                           "type": "integer"
                         },
+                        "guest_name": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -18323,7 +18343,8 @@
                     "type": "string",
                     "enum": [
                       "casual",
-                      "ranking"
+                      "ranking",
+                      "party"
                     ]
                   },
                   "user_created": {
@@ -20181,6 +20202,9 @@
                                   "match_offset": {
                                     "type": "integer"
                                   },
+                                  "guest_name": {
+                                    "type": "string"
+                                  },
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -21057,7 +21081,8 @@
                               "type": "string",
                               "enum": [
                                 "casual",
-                                "ranking"
+                                "ranking",
+                                "party"
                               ]
                             },
                             "user_created": {
@@ -21322,6 +21347,9 @@
                           "type": "string"
                         }
                       }
+                    },
+                    "guest_name": {
+                      "type": "string"
                     },
                     "createdAt": {
                       "type": "string",
@@ -23097,6 +23125,9 @@
                                         "match_offset": {
                                           "type": "integer"
                                         },
+                                        "guest_name": {
+                                          "type": "string"
+                                        },
                                         "createdAt": {
                                           "type": "string",
                                           "format": "date-time"
@@ -23701,7 +23732,8 @@
                                     "type": "string",
                                     "enum": [
                                       "casual",
-                                      "ranking"
+                                      "ranking",
+                                      "party"
                                     ]
                                   },
                                   "user_created": {
@@ -23966,6 +23998,9 @@
                                 "type": "string"
                               }
                             }
+                          },
+                          "guest_name": {
+                            "type": "string"
                           },
                           "createdAt": {
                             "type": "string",
@@ -26836,6 +26871,9 @@
                                   }
                                 }
                               },
+                              "guest_name": {
+                                "type": "string"
+                              },
                               "createdAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -27563,6 +27601,9 @@
                     "match_offset": {
                       "type": "integer"
                     },
+                    "guest_name": {
+                      "type": "string"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -27688,7 +27729,8 @@
                 "type": "string",
                 "enum": [
                   "casual",
-                  "ranking"
+                  "ranking",
+                  "party"
                 ]
               },
               "user_created": {
@@ -27977,6 +28019,9 @@
                   }
                 ],
                 "example": "string or id"
+              },
+              "guest_name": {
+                "type": "string"
               },
               "locale": {
                 "type": "string"
@@ -28813,6 +28858,9 @@
                                         "type": "string"
                                       }
                                     }
+                                  },
+                                  "guest_name": {
+                                    "type": "string"
                                   },
                                   "createdAt": {
                                     "type": "string",
@@ -30292,6 +30340,9 @@
                         "match_offset": {
                           "type": "integer"
                         },
+                        "guest_name": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -30417,7 +30468,8 @@
                     "type": "string",
                     "enum": [
                       "casual",
-                      "ranking"
+                      "ranking",
+                      "party"
                     ]
                   },
                   "user_created": {
@@ -30683,6 +30735,9 @@
               }
             }
           },
+          "guest_name": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -30857,7 +30912,8 @@
                 "type": "string",
                 "enum": [
                   "casual",
-                  "ranking"
+                  "ranking",
+                  "party"
                 ]
               },
               "user_created": {
@@ -33161,6 +33217,9 @@
                                     }
                                   }
                                 },
+                                "guest_name": {
+                                  "type": "string"
+                                },
                                 "createdAt": {
                                   "type": "string",
                                   "format": "date-time"
@@ -33394,7 +33453,8 @@
                       "type": "string",
                       "enum": [
                         "casual",
-                        "ranking"
+                        "ranking",
+                        "party"
                       ]
                     },
                     "user_created": {
@@ -33516,6 +33576,9 @@
                 },
                 "match_offset": {
                   "type": "integer"
+                },
+                "guest_name": {
+                  "type": "string"
                 },
                 "createdAt": {
                   "type": "string",
@@ -33642,7 +33705,8 @@
             "type": "string",
             "enum": [
               "casual",
-              "ranking"
+              "ranking",
+              "party"
             ]
           },
           "user_created": {
@@ -33788,6 +33852,9 @@
               },
               "match_offset": {
                 "type": "integer"
+              },
+              "guest_name": {
+                "type": "string"
               },
               "locale": {
                 "type": "string"
@@ -35528,6 +35595,9 @@
                                   }
                                 }
                               },
+                              "guest_name": {
+                                "type": "string"
+                              },
                               "createdAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -36255,6 +36325,9 @@
                     "match_offset": {
                       "type": "integer"
                     },
+                    "guest_name": {
+                      "type": "string"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -36380,7 +36453,8 @@
                 "type": "string",
                 "enum": [
                   "casual",
-                  "ranking"
+                  "ranking",
+                  "party"
                 ]
               },
               "user_created": {
@@ -36502,6 +36576,9 @@
           },
           "match_offset": {
             "type": "integer"
+          },
+          "guest_name": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",

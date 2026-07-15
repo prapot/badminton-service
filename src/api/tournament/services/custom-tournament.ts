@@ -37,9 +37,15 @@ export default () => ({
           populate: ['user']
         })) as any[];
 
+        const getUnifiedPlayer = (tp: any) => {
+          if (tp.user) return { ...tp.user, is_guest: false };
+          if (tp.guest_name) return { id: -(tp.id), username: tp.guest_name, is_guest: true, guest_name: tp.guest_name };
+          return null;
+        };
+
         // All players in tournament (to calculate effective counts properly)
-        const allPlayers = tPlayers.map(tp => tp.user).filter(Boolean);
-        const freePlayers = tPlayers.filter(tp => !tp.is_paused).map(tp => tp.user).filter(Boolean);
+        const allPlayers = tPlayers.map(getUnifiedPlayer).filter(Boolean);
+        const freePlayers = tPlayers.filter(tp => !tp.is_paused).map(getUnifiedPlayer).filter(Boolean);
         const freePlayerIds = new Set(freePlayers.map(p => p.id));
 
         // 3. Fetch past matches
@@ -59,9 +65,21 @@ export default () => ({
         matches.forEach(m => {
           if (m.match_status === 'cancelled') return;
           const pids = [
-            ...(m.team_a_id?.team_players?.map((tp: any) => Number(tp.user_id?.id || tp.user_id)) || []),
-            ...(m.team_b_id?.team_players?.map((tp: any) => Number(tp.user_id?.id || tp.user_id)) || [])
-          ].filter((id) => !isNaN(id) && id > 0);
+            ...(m.team_a_id?.team_players?.map((tp: any) => {
+              if (tp.guest_name) {
+                const tpRecord = tPlayers.find(t => t.guest_name === tp.guest_name && !t.user);
+                return tpRecord ? -tpRecord.id : null;
+              }
+              return Number(tp.user_id?.id || tp.user_id);
+            }) || []),
+            ...(m.team_b_id?.team_players?.map((tp: any) => {
+              if (tp.guest_name) {
+                const tpRecord = tPlayers.find(t => t.guest_name === tp.guest_name && !t.user);
+                return tpRecord ? -tpRecord.id : null;
+              }
+              return Number(tp.user_id?.id || tp.user_id);
+            }) || [])
+          ].filter((id) => id !== null && !isNaN(id as number));
 
           pids.forEach(id => {
             if (actualCounts.has(id)) actualCounts.set(id, actualCounts.get(id)! + 1);
@@ -100,7 +118,13 @@ export default () => ({
             if (m.match_status === 'cancelled') return;
             [m.team_a_id, m.team_b_id].forEach(t => {
               if (!t) return;
-              const ids = t.team_players?.map((tp: any) => Number(tp.user_id?.id || tp.user_id)).filter((id: number) => !isNaN(id) && id > 0);
+              const ids = t.team_players?.map((tp: any) => {
+                if (tp.guest_name) {
+                  const tpRecord = tPlayers.find(x => x.guest_name === tp.guest_name && !x.user);
+                  return tpRecord ? -tpRecord.id : null;
+                }
+                return Number(tp.user_id?.id || tp.user_id);
+              }).filter((id: number | null) => id !== null && !isNaN(id));
               if (ids && ids.length === 2 && ids.includes(id1) && ids.includes(id2)) count++;
             });
           });
@@ -114,8 +138,20 @@ export default () => ({
           let count = 0;
           matches.forEach(m => {
             if (m.match_status === "cancelled") return;
-            const mA = m.team_a_id?.team_players?.map((tp: any) => Number(tp.user_id?.id || tp.user_id)).filter((id: number) => !isNaN(id) && id > 0).sort((a: number, b: number) => a - b).join(",") || "";
-            const mB = m.team_b_id?.team_players?.map((tp: any) => Number(tp.user_id?.id || tp.user_id)).filter((id: number) => !isNaN(id) && id > 0).sort((a: number, b: number) => a - b).join(",") || "";
+            const mA = m.team_a_id?.team_players?.map((tp: any) => {
+                if (tp.guest_name) {
+                    const tpRecord = tPlayers.find(x => x.guest_name === tp.guest_name && !x.user);
+                    return tpRecord ? -tpRecord.id : null;
+                }
+                return Number(tp.user_id?.id || tp.user_id);
+            }).filter((id: number | null) => id !== null && !isNaN(id)).sort((a: number, b: number) => a - b).join(",") || "";
+            const mB = m.team_b_id?.team_players?.map((tp: any) => {
+                if (tp.guest_name) {
+                    const tpRecord = tPlayers.find(x => x.guest_name === tp.guest_name && !x.user);
+                    return tpRecord ? -tpRecord.id : null;
+                }
+                return Number(tp.user_id?.id || tp.user_id);
+            }).filter((id: number | null) => id !== null && !isNaN(id)).sort((a: number, b: number) => a - b).join(",") || "";
             if ((mA === keyA && mB === keyB) || (mA === keyB && mB === keyA)) count++;
           });
           return count;
@@ -285,7 +321,7 @@ export default () => ({
 
         await Promise.all(sideA.players.map((p: any) =>
           strapi.entityService.create('api::team-player.team-player', {
-            data: { team_id: teamA.id, user_id: p.id },
+            data: { team_id: teamA.id, ...(p.is_guest ? { guest_name: p.guest_name } : { user_id: p.id }) },
             // @ts-ignore
             transaction: trx,
           })
@@ -299,7 +335,7 @@ export default () => ({
 
         await Promise.all(sideB.players.map((p: any) =>
           strapi.entityService.create('api::team-player.team-player', {
-            data: { team_id: teamB.id, user_id: p.id },
+            data: { team_id: teamB.id, ...(p.is_guest ? { guest_name: p.guest_name } : { user_id: p.id }) },
             // @ts-ignore
             transaction: trx,
           })
@@ -347,13 +383,22 @@ export default () => ({
         transaction: trx,
       });
 
-      await Promise.all(playerIdsA.map((pid: number) =>
-        strapi.entityService.create('api::team-player.team-player', {
+      await Promise.all(playerIdsA.map(async (pid: number) => {
+        if (pid < 0) {
+          const tpId = -pid;
+          const tp: any = await strapi.entityService.findOne('api::tournament-player.tournament-player', tpId);
+          return strapi.entityService.create('api::team-player.team-player', {
+            data: { team_id: teamA.id, guest_name: tp.guest_name },
+            // @ts-ignore
+            transaction: trx,
+          });
+        }
+        return strapi.entityService.create('api::team-player.team-player', {
           data: { team_id: teamA.id, user_id: pid },
           // @ts-ignore
           transaction: trx,
-        })
-      ));
+        });
+      }));
 
       // 3. Create Team B
       const teamB = await strapi.entityService.create('api::team.team', {
@@ -362,13 +407,22 @@ export default () => ({
         transaction: trx,
       });
 
-      await Promise.all(playerIdsB.map((pid: number) =>
-        strapi.entityService.create('api::team-player.team-player', {
+      await Promise.all(playerIdsB.map(async (pid: number) => {
+        if (pid < 0) {
+          const tpId = -pid;
+          const tp: any = await strapi.entityService.findOne('api::tournament-player.tournament-player', tpId);
+          return strapi.entityService.create('api::team-player.team-player', {
+            data: { team_id: teamB.id, guest_name: tp.guest_name },
+            // @ts-ignore
+            transaction: trx,
+          });
+        }
+        return strapi.entityService.create('api::team-player.team-player', {
           data: { team_id: teamB.id, user_id: pid },
           // @ts-ignore
           transaction: trx,
-        })
-      ));
+        });
+      }));
 
       // 4. Get match number
       const matchCount = await strapi.db.query('api::match.match').count({

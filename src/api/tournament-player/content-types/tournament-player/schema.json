@@ -33,6 +33,9 @@
     "match_offset": {
       "type": "integer",
       "default": 0
+    },
+    "guest_name": {
+      "type": "string"
     }
   }
 }

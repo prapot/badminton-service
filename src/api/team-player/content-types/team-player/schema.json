@@ -22,6 +22,9 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "team_players"
+    },
+    "guest_name": {
+      "type": "string"
     }
   }
 }

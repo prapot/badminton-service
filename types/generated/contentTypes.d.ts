@@ -799,6 +799,7 @@ export interface ApiTeamPlayerTeamPlayer extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    guest_name: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -868,6 +869,7 @@ export interface ApiTournamentPlayerTournamentPlayer
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    guest_name: Schema.Attribute.String;
     is_paused: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -916,7 +918,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
-    mode: Schema.Attribute.Enumeration<['casual', 'ranking']> &
+    mode: Schema.Attribute.Enumeration<['casual', 'ranking', 'party']> &
       Schema.Attribute.Required;
     name: Schema.Attribute.String;
     permanent_teams: Schema.Attribute.JSON;
