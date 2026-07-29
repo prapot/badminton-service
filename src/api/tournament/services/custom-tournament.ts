@@ -364,15 +364,60 @@ export default () => ({
   },
 
   async createMatchManual(tournamentId: string, playerIdsA: number[], playerIdsB: number[]) {
-    return await strapi.db.transaction(async ({ trx }) => {
-      // 1. Fetch tournament by documentId to get numeric ID
-      const tournaments = (await strapi.entityService.findMany('api::tournament.tournament', {
-        filters: { documentId: tournamentId },
-      } as any)) as any[];
+    if (drawingLocks.has(tournamentId)) {
+      throw new Error('กำลังสร้างแมตช์ กรุณารอสักครู่...');
+    }
+    drawingLocks.add(tournamentId);
 
-      const tournament = tournaments[0];
-      if (!tournament) throw new Error('Tournament not found');
-      const tNumericId = tournament.id;
+    try {
+      return await strapi.db.transaction(async ({ trx }) => {
+        // 1. Fetch tournament by documentId to get numeric ID
+        const tournaments = (await strapi.entityService.findMany('api::tournament.tournament', {
+          filters: { documentId: tournamentId },
+        } as any)) as any[];
+
+        const tournament = tournaments[0];
+        if (!tournament) throw new Error('Tournament not found');
+        const tNumericId = tournament.id;
+
+        // 1.5 Validate if any of the players are already busy (prevents stale preview submissions)
+        const activeMatches = (await strapi.db.query('api::match.match').findMany({
+          where: { 
+            tournament_id: tNumericId,
+            match_status: { $in: ['upcoming', 'live'] } 
+          },
+          populate: {
+            team_a_id: { populate: { team_players: { populate: { user_id: true } } } },
+            team_b_id: { populate: { team_players: { populate: { user_id: true } } } },
+          }
+        })) as any[];
+
+        const tPlayers = (await strapi.db.query('api::tournament-player.tournament-player').findMany({
+          where: { tournament_id: tNumericId },
+          populate: ['user']
+        })) as any[];
+
+        const busyPlayerIds = new Set<number>();
+        activeMatches.forEach(m => {
+          [m.team_a_id, m.team_b_id].forEach(team => {
+            if (!team) return;
+            team.team_players?.forEach((tp: any) => {
+               if (tp.user_id) {
+                 busyPlayerIds.add(Number(tp.user_id.id || tp.user_id));
+               } else if (tp.guest_name) {
+                 const tpRecord = tPlayers.find(t => t.guest_name === tp.guest_name && !t.user);
+                 if (tpRecord) busyPlayerIds.add(-tpRecord.id);
+               }
+            });
+          });
+        });
+
+        const allRequested = [...playerIdsA, ...playerIdsB];
+        for (const pid of allRequested) {
+          if (busyPlayerIds.has(pid)) {
+             throw new Error('สร้างแมตช์ไม่สำเร็จ: ผู้เล่นบางคนมีคิวแข่งอยู่แล้ว (อาจมีการสุ่มไปแล้วจากเครื่องอื่น)');
+          }
+        }
 
       const randNo = () => Math.random().toString(36).substring(2, 10).toUpperCase();
 
@@ -446,5 +491,8 @@ export default () => ({
 
       return match;
     });
+    } finally {
+      drawingLocks.delete(tournamentId);
+    }
   }
 });
