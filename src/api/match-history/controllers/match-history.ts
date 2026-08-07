@@ -16,16 +16,28 @@ export default factories.createCoreController('api::match-history.match-history'
       // Build filters
       const filters: any = {
         users: {
-          id: userId
+          id: { $eq: userId }
         }
       };
 
       if (seasonId && seasonId !== 'all') {
-        filters.ranking = {
-          season: {
-            documentId: seasonId
-          }
-        };
+        // 1. Fetch ranking for this season and user to avoid deep nested filtering bugs
+        const rankings: any = await strapi.entityService.findMany('api::ranking.ranking', {
+          filters: {
+            user_id: { id: { $eq: userId } },
+            season: { documentId: { $eq: seasonId } }
+          } as any
+        });
+
+        if (rankings && rankings.length > 0) {
+          filters.ranking = {
+            id: { $eq: rankings[0].id }
+          };
+        } else {
+          // Return empty if no ranking exists for this season
+          ctx.body = { data: { summary: [], details: {} } };
+          return;
+        }
       }
 
       // Fetch histories from DB
