@@ -104,7 +104,10 @@ export default factories.createCoreController('api::match-history.match-history'
 
   async partnerAnalytics(ctx) {
     try {
-      const { userId, seasonId, page = 1, limit = 10 } = ctx.query;
+      const { userId, seasonId } = ctx.query;
+      const paginationParams = (ctx.query.pagination as any) || {};
+      const pageStr = paginationParams.page || 1;
+      const limitStr = paginationParams.pageSize || 10;
 
       if (!userId) {
         return ctx.badRequest('userId is required');
@@ -132,13 +135,14 @@ export default factories.createCoreController('api::match-history.match-history'
             id: { $eq: rankings[0].id }
           };
         } else {
-          return { data: [], meta: { pagination: { page: Number(page), limit: Number(limit), total: 0, pageCount: 0 } } };
+          return { data: [], meta: { pagination: { page: Number(pageStr), pageSize: Number(limitStr), total: 0, pageCount: 0 } } };
         }
       }
 
-      // Fetch histories with deep populate
+      // Fetch ALL histories for the user to aggregate correctly (using limit 10000 to bypass default 100 limit)
       const histories = await strapi.entityService.findMany('api::match-history.match-history', {
         filters,
+        limit: 10000,
         populate: {
           matches: {
             populate: {
@@ -224,9 +228,9 @@ export default factories.createCoreController('api::match-history.match-history'
         return b.matchesPlayed - a.matchesPlayed;
       });
 
-      // Paginate
-      const parsedPage = parseInt(String(page), 10) || 1;
-      const parsedLimit = parseInt(String(limit), 10) || 10;
+      // Paginate manually
+      const parsedPage = parseInt(String(pageStr), 10) || 1;
+      const parsedLimit = parseInt(String(limitStr), 10) || 10;
       
       const total = partnerList.length;
       const pageCount = Math.ceil(total / parsedLimit) || 1;
@@ -238,7 +242,7 @@ export default factories.createCoreController('api::match-history.match-history'
         meta: {
           pagination: {
             page: parsedPage,
-            limit: parsedLimit,
+            pageSize: parsedLimit,
             total,
             pageCount
           }
