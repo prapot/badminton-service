@@ -100,5 +100,152 @@ export default factories.createCoreController('api::match-history.match-history'
     } catch (err) {
       ctx.throw(500, err);
     }
+  },
+
+  async partnerAnalytics(ctx) {
+    try {
+      const { userId, seasonId, page = 1, limit = 10 } = ctx.query;
+
+      if (!userId) {
+        return ctx.badRequest('userId is required');
+      }
+
+      const targetUserId = parseInt(userId as string, 10);
+
+      // Build filters
+      const filters: any = {
+        users: {
+          id: { $eq: targetUserId }
+        }
+      };
+
+      if (seasonId && seasonId !== 'all') {
+        const rankings: any = await strapi.entityService.findMany('api::ranking.ranking', {
+          filters: {
+            user_id: { id: { $eq: targetUserId } },
+            season: { documentId: { $eq: seasonId } }
+          } as any
+        });
+
+        if (rankings && rankings.length > 0) {
+          filters.ranking = {
+            id: { $eq: rankings[0].id }
+          };
+        } else {
+          return { data: [], meta: { pagination: { page: Number(page), limit: Number(limit), total: 0, pageCount: 0 } } };
+        }
+      }
+
+      // Fetch histories with deep populate
+      const histories = await strapi.entityService.findMany('api::match-history.match-history', {
+        filters,
+        populate: {
+          matches: {
+            populate: {
+              team_a_id: {
+                populate: {
+                  team_players: {
+                    populate: {
+                      user_id: {
+                        populate: { picture: true }
+                      }
+                    }
+                  }
+                }
+              },
+              team_b_id: {
+                populate: {
+                  team_players: {
+                    populate: {
+                      user_id: {
+                        populate: { picture: true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } as any,
+      });
+
+      const partnerStats: Record<number, any> = {};
+
+      if (histories && Array.isArray(histories)) {
+        histories.forEach(h => {
+          const isWin = h.is_win;
+          const matches = (h as any).matches || [];
+          
+          matches.forEach((match: any) => {
+            const teamA = match.team_a_id?.team_players || [];
+            const teamB = match.team_b_id?.team_players || [];
+            
+            const inTeamA = teamA.some((p: any) => p.user_id?.id === targetUserId);
+            const inTeamB = teamB.some((p: any) => p.user_id?.id === targetUserId);
+            
+            let myTeam: any[] = [];
+            if (inTeamA) myTeam = teamA;
+            else if (inTeamB) myTeam = teamB;
+            
+            if (myTeam.length === 2) {
+              const partner = myTeam.find((p: any) => p.user_id && p.user_id.id !== targetUserId);
+              if (partner && partner.user_id) {
+                const pid = partner.user_id.id;
+                if (!partnerStats[pid]) {
+                  partnerStats[pid] = {
+                    partnerId: pid,
+                    username: partner.user_id.username,
+                    picture: partner.user_id.picture?.url || null,
+                    matchesPlayed: 0,
+                    wins: 0
+                  };
+                }
+                partnerStats[pid].matchesPlayed += 1;
+                if (isWin) {
+                  partnerStats[pid].wins += 1;
+                }
+              }
+            }
+          });
+        });
+      }
+
+      let partnerList = Object.values(partnerStats).map((p: any) => ({
+        ...p,
+        winRate: Math.round((p.wins / p.matchesPlayed) * 100)
+      }));
+
+      // Filter matches > 1
+      partnerList = partnerList.filter((p: any) => p.matchesPlayed > 1);
+
+      // Sort
+      partnerList.sort((a: any, b: any) => {
+        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+        return b.matchesPlayed - a.matchesPlayed;
+      });
+
+      // Paginate
+      const parsedPage = parseInt(String(page), 10) || 1;
+      const parsedLimit = parseInt(String(limit), 10) || 10;
+      
+      const total = partnerList.length;
+      const pageCount = Math.ceil(total / parsedLimit) || 1;
+      const startIndex = (parsedPage - 1) * parsedLimit;
+      const paginatedPartners = partnerList.slice(startIndex, startIndex + parsedLimit);
+
+      ctx.body = {
+        data: paginatedPartners,
+        meta: {
+          pagination: {
+            page: parsedPage,
+            limit: parsedLimit,
+            total,
+            pageCount
+          }
+        }
+      };
+    } catch (err) {
+      ctx.throw(500, err);
+    }
   }
 }));
