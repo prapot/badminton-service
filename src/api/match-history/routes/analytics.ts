@@ -7,6 +7,14 @@ export default {
       config: {
         auth: false
       }
+    },
+    {
+      method: 'GET',
+      path: '/match-histories/partner-analytics',
+      handler: 'match-history.partnerAnalytics',
+      config: {
+        auth: false
+      }
     }
   ]
 }
