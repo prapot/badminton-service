@@ -219,8 +219,8 @@ export default factories.createCoreController('api::match-history.match-history'
         winRate: Math.round((p.wins / p.matchesPlayed) * 100)
       }));
 
-      // Filter matches > 1
-      partnerList = partnerList.filter((p: any) => p.matchesPlayed > 1);
+      // Show everyone even if they played 1 time (>= 1)
+      partnerList = partnerList.filter((p: any) => p.matchesPlayed >= 1);
 
       // Sort
       partnerList.sort((a: any, b: any) => {
