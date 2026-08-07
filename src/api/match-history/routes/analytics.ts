@@ -15,6 +15,14 @@ export default {
       config: {
         auth: false
       }
+    },
+    {
+      method: 'GET',
+      path: '/match-histories/nemesis-analytics',
+      handler: 'match-history.nemesisAnalytics',
+      config: {
+        auth: false
+      }
     }
   ]
 }
