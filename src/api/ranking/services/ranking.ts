@@ -283,9 +283,9 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         const TIERS = [
             { name: 'Bronze', divisions: 3, starsPerDiv: 3 },
             { name: 'Silver', divisions: 3, starsPerDiv: 3 },
-            { name: 'Gold', divisions: 4, starsPerDiv: 3 },
-            { name: 'Platinum', divisions: 5, starsPerDiv: 4 },
-            { name: 'Diamond', divisions: 5, starsPerDiv: 4 },
+            { name: 'Gold', divisions: 3, starsPerDiv: 3 },
+            { name: 'Platinum', divisions: 3, starsPerDiv: 4 },
+            { name: 'Diamond', divisions: 3, starsPerDiv: 4 },
             { name: 'Master', divisions: 1, starsPerDiv: 99999 }
         ];
         const DIVS = ['V', 'IV', 'III', 'II', 'I'];
