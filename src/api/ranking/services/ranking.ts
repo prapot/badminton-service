@@ -6,16 +6,19 @@ const BRAVE_POINTS_CAP = 100;
 export default factories.createCoreService('api::ranking.ranking', ({ strapi }) => ({
     async getOrCreateCurrentSeason() {
         const now = new Date();
-        const monthStr = now.toISOString().slice(0, 7);
-        const seasonName = `Season ${monthStr}`;
+        const y = now.getFullYear();
+        const m = now.getMonth() + 1;
+        const oddM = m % 2 === 0 ? m - 1 : m;
+        const nextM = oddM + 1;
+        const seasonName = `Season ${y} | ${String(oddM).padStart(2, '0')}-${String(nextM).padStart(2, '0')}`;
 
         let currentSeason = await strapi.db.query('api::season.season').findOne({
             where: { name: seasonName },
         }) as any;
 
         if (!currentSeason) {
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const startOfMonth = new Date(y, oddM - 1, 1);
+            const endOfMonth = new Date(y, oddM + 1, 0);
 
             // Deactivate ALL other active seasons before creating the new one
             await strapi.db.query('api::season.season').updateMany({

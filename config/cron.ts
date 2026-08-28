@@ -9,7 +9,7 @@ export default {
      * 2. Creates the new month's season (or re-activates if exists)
      * 3. Recalibrates rankings for the new season from scratch
      */
-    '5 0 1 * *': async ({ strapi }) => {
+    '5 0 1 1,3,5,7,9,11 *': async ({ strapi }) => {
         const startedAt = new Date().toISOString();
         console.log(`[Cron][${startedAt}] 🔄 Monthly season transition + rerank started...`);
         try {
