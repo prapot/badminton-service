@@ -55,6 +55,14 @@ export default {
             config: {
                 auth: false,
             },
+        },
+        {
+            method: 'GET',
+            path: '/rankings/lifetime-stats',
+            handler: 'ranking.getLifetimeStats',
+            config: {
+                auth: false
+            }
         }
     ],
 };
