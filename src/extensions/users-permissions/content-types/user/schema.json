@@ -109,6 +109,9 @@
       "relation": "oneToMany",
       "target": "api::tournament.tournament",
       "mappedBy": "user_created"
+    },
+    "nickname": {
+      "type": "string"
     }
   }
 }

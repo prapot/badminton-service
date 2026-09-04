@@ -13,7 +13,7 @@ export default factories.createCoreController('api::profile.profile', ({ strapi 
         }
 
         // Filter allowed fields to prevent arbitrary updates (like password or role)
-        const allowedFields = ['username', 'email']; // Add other fields if necessary
+        const allowedFields = ['username', 'email', 'nickname', 'password']; // Add other fields if necessary
         const updateData = {};
         for (const key of allowedFields) {
             if (data[key] !== undefined) {

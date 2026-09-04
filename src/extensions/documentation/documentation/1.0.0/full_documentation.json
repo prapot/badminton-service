@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-09-01T18:01:35.255Z"
+    "x-generation-date": "2026-09-04T17:38:15.541Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -12488,6 +12488,9 @@
                             }
                           }
                         },
+                        "nickname": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -15697,6 +15700,9 @@
                     }
                   }
                 },
+                "nickname": {
+                  "type": "string"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -18131,6 +18137,9 @@
                                   }
                                 }
                               }
+                            },
+                            "nickname": {
+                              "type": "string"
                             },
                             "createdAt": {
                               "type": "string",
@@ -21995,6 +22004,9 @@
                   }
                 }
               },
+              "nickname": {
+                "type": "string"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -24645,6 +24657,9 @@
                           }
                         }
                       }
+                    },
+                    "nickname": {
+                      "type": "string"
                     },
                     "createdAt": {
                       "type": "string",
@@ -27518,6 +27533,9 @@
                             }
                           }
                         },
+                        "nickname": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -30256,6 +30274,9 @@
                                   }
                                 }
                               }
+                            },
+                            "nickname": {
+                              "type": "string"
                             },
                             "createdAt": {
                               "type": "string",
@@ -33142,6 +33163,9 @@
                                           }
                                         }
                                       }
+                                    },
+                                    "nickname": {
+                                      "type": "string"
                                     },
                                     "createdAt": {
                                       "type": "string",
@@ -36241,6 +36265,9 @@
                               }
                             }
                           }
+                        },
+                        "nickname": {
+                          "type": "string"
                         },
                         "createdAt": {
                           "type": "string",

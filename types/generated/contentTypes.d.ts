@@ -1426,6 +1426,7 @@ export interface PluginUsersPermissionsUser
       'oneToOne',
       'api::match-player-score.match-player-score'
     >;
+    nickname: Schema.Attribute.String;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
