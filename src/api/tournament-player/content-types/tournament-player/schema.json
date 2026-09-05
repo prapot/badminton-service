@@ -36,6 +36,9 @@
     },
     "guest_name": {
       "type": "string"
+    },
+    "skill_level": {
+      "type": "string"
     }
   }
 }

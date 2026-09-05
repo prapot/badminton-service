@@ -880,6 +880,7 @@ export interface ApiTournamentPlayerTournamentPlayer
     match_offset: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     seed: Schema.Attribute.Integer;
+    skill_level: Schema.Attribute.String;
     tournament_id: Schema.Attribute.Relation<
       'manyToOne',
       'api::tournament.tournament'

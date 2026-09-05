@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-09-04T17:38:15.541Z"
+    "x-generation-date": "2026-09-05T10:11:03.677Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -12577,6 +12577,9 @@
                     "guest_name": {
                       "type": "string"
                     },
+                    "skill_level": {
+                      "type": "string"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -13908,6 +13911,9 @@
                                       "type": "integer"
                                     },
                                     "guest_name": {
+                                      "type": "string"
+                                    },
+                                    "skill_level": {
                                       "type": "string"
                                     },
                                     "createdAt": {
@@ -18227,6 +18233,9 @@
                         "guest_name": {
                           "type": "string"
                         },
+                        "skill_level": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -20212,6 +20221,9 @@
                                     "type": "integer"
                                   },
                                   "guest_name": {
+                                    "type": "string"
+                                  },
+                                  "skill_level": {
                                     "type": "string"
                                   },
                                   "createdAt": {
@@ -23138,6 +23150,9 @@
                                           "type": "integer"
                                         },
                                         "guest_name": {
+                                          "type": "string"
+                                        },
+                                        "skill_level": {
                                           "type": "string"
                                         },
                                         "createdAt": {
@@ -27622,6 +27637,9 @@
                     "guest_name": {
                       "type": "string"
                     },
+                    "skill_level": {
+                      "type": "string"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -30362,6 +30380,9 @@
                           "type": "integer"
                         },
                         "guest_name": {
+                          "type": "string"
+                        },
+                        "skill_level": {
                           "type": "string"
                         },
                         "createdAt": {
@@ -33604,6 +33625,9 @@
                 "guest_name": {
                   "type": "string"
                 },
+                "skill_level": {
+                  "type": "string"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -33878,6 +33902,9 @@
                 "type": "integer"
               },
               "guest_name": {
+                "type": "string"
+              },
+              "skill_level": {
                 "type": "string"
               },
               "locale": {
@@ -36355,6 +36382,9 @@
                     "guest_name": {
                       "type": "string"
                     },
+                    "skill_level": {
+                      "type": "string"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -36605,6 +36635,9 @@
             "type": "integer"
           },
           "guest_name": {
+            "type": "string"
+          },
+          "skill_level": {
             "type": "string"
           },
           "createdAt": {
