@@ -30,6 +30,23 @@ export default () => ({
 
         const pPerTeam = tournament.type === 'double' ? 2 : 1;
         const permanentTeams = (tournament.permanent_teams as any[]) || [];
+        const blockedPartnersList = (tournament.blocked_partners as any[]) || [];
+
+        const blockedPairsSet = new Set<string>();
+        blockedPartnersList.forEach((bp: any) => {
+          const p1 = Number(bp.blockerId);
+          const p2 = Number(bp.blockedId);
+          if (!isNaN(p1) && !isNaN(p2)) {
+            blockedPairsSet.add(`${Math.min(p1, p2)}:${Math.max(p1, p2)}`);
+          }
+        });
+
+        const isBlockedTeammates = (p1Id: number | string, p2Id: number | string): boolean => {
+          const id1 = Number(p1Id);
+          const id2 = Number(p2Id);
+          if (isNaN(id1) || isNaN(id2)) return false;
+          return blockedPairsSet.has(`${Math.min(id1, id2)}:${Math.max(id1, id2)}`);
+        };
 
         // 2. Fetch tournament players (only those not paused)
         const tPlayers = (await strapi.db.query('api::tournament-player.tournament-player').findMany({
@@ -157,11 +174,21 @@ export default () => ({
           return count;
         };
 
+        const BLOCK_PENALTY = 10_000_000_000;
+
         const pickBestDouble = (pool4: any[]) => {
-          const scoreOption = (tA: any[], tB: any[]) =>
-            Math.pow(getPartnerHistory(tA[0].id, tA[1].id), 2) * 50 +
-            Math.pow(getPartnerHistory(tB[0].id, tB[1].id), 2) * 50 +
-            Math.pow(getFaceoffCount([tA[0].id, tA[1].id], [tB[0].id, tB[1].id]), 2) * 200;
+          const scoreOption = (tA: any[], tB: any[]) => {
+            const isBlockedA = isBlockedTeammates(tA[0].id, tA[1].id);
+            const isBlockedB = isBlockedTeammates(tB[0].id, tB[1].id);
+            const blockPenalty = (isBlockedA || isBlockedB) ? BLOCK_PENALTY : 0;
+
+            return (
+              Math.pow(getPartnerHistory(tA[0].id, tA[1].id), 2) * 50 +
+              Math.pow(getPartnerHistory(tB[0].id, tB[1].id), 2) * 50 +
+              Math.pow(getFaceoffCount([tA[0].id, tA[1].id], [tB[0].id, tB[1].id]), 2) * 200 +
+              blockPenalty
+            );
+          };
 
           const opts = [
             { a: [pool4[0], pool4[1]], b: [pool4[2], pool4[3]], score: scoreOption([pool4[0], pool4[1]], [pool4[2], pool4[3]]) },
@@ -246,6 +273,10 @@ export default () => ({
                 score += Math.pow(getPartnerHistory(tA[0].id, tA[1].id), 2) * 50 + Math.pow(getPartnerHistory(tB[0].id, tB[1].id), 2) * 50;
                 // Exponential penalty for faceoff history
                 score += Math.pow(getFaceoffCount([tA[0].id, tA[1].id], [tB[0].id, tB[1].id]), 2) * 200;
+                // Severe penalty if blocked partners are paired
+                if (isBlockedTeammates(tA[0].id, tA[1].id) || isBlockedTeammates(tB[0].id, tB[1].id)) {
+                  score += BLOCK_PENALTY;
+                }
                 // Heavy penalty for playing too many matches (ensures rotation of entire player pool)
                 score += (avgA + avgB) * 20000;
                 // Rank Balance: penalize imbalanced teams (high rank + high rank vs low rank + low rank)
@@ -264,6 +295,9 @@ export default () => ({
                 const avg = slice.reduce((s: number, p: any) => s + (effectiveCounts.get(p.id) || 0), 0) / slice.length;
                 candidateSides.push({ players: slice, label: slice.map((p: any) => p.username).join(" / "), matchCount: avg });
                 score += Math.pow(getPartnerHistory(slice[0].id, slice[1].id), 2) * 50;
+                if (isBlockedTeammates(slice[0].id, slice[1].id)) {
+                  score += BLOCK_PENALTY;
+                }
               }
               if (score < bestScore) {
                 bestScore = score;
@@ -296,7 +330,8 @@ export default () => ({
 
           const partnerPenalty = (side: any) =>
             pPerTeam === 2 && side.players.length === 2
-              ? Math.pow(getPartnerHistory(side.players[0].id, side.players[1].id), 2) * 100
+              ? Math.pow(getPartnerHistory(side.players[0].id, side.players[1].id), 2) * 100 +
+                (isBlockedTeammates(side.players[0].id, side.players[1].id) ? BLOCK_PENALTY : 0)
               : 0;
 
           const scoredOpponents = otherSides.map(sB => {
@@ -371,9 +406,17 @@ export default () => ({
 
     try {
       return await strapi.db.transaction(async ({ trx }) => {
-        // 1. Fetch tournament by documentId to get numeric ID
+        // 1. Fetch tournament by documentId or id to get numeric ID
         const tournaments = (await strapi.entityService.findMany('api::tournament.tournament', {
-          filters: { documentId: tournamentId },
+          filters: {
+            $or: [
+              { documentId: tournamentId },
+              ...(isNaN(Number(tournamentId)) ? [] : [{ id: Number(tournamentId) }])
+            ]
+          },
+          populate: '*',
+          // @ts-ignore
+          transaction: trx,
         } as any)) as any[];
 
         const tournament = tournaments[0];

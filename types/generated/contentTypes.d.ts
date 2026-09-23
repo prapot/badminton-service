@@ -906,6 +906,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    blocked_partners: Schema.Attribute.JSON;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

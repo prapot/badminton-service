@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-09-05T10:11:03.677Z"
+    "x-generation-date": "2026-09-23T16:47:35.053Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -12728,6 +12728,7 @@
                 }
               },
               "permanent_teams": {},
+              "blocked_partners": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -14815,6 +14816,7 @@
                                 }
                               },
                               "permanent_teams": {},
+                              "blocked_partners": {},
                               "createdAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -18384,6 +18386,7 @@
                     }
                   },
                   "permanent_teams": {},
+                  "blocked_partners": {},
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -21125,6 +21128,7 @@
                               }
                             },
                             "permanent_teams": {},
+                            "blocked_partners": {},
                             "createdAt": {
                               "type": "string",
                               "format": "date-time"
@@ -23782,6 +23786,7 @@
                                     }
                                   },
                                   "permanent_teams": {},
+                                  "blocked_partners": {},
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -27788,6 +27793,7 @@
                 }
               },
               "permanent_teams": {},
+              "blocked_partners": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -30533,6 +30539,7 @@
                     }
                   },
                   "permanent_teams": {},
+                  "blocked_partners": {},
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -30970,6 +30977,7 @@
                 "example": "string or id"
               },
               "permanent_teams": {},
+              "blocked_partners": {},
               "locale": {
                 "type": "string"
               },
@@ -33521,6 +33529,7 @@
                       }
                     },
                     "permanent_teams": {},
+                    "blocked_partners": {},
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -33776,6 +33785,7 @@
             }
           },
           "permanent_teams": {},
+          "blocked_partners": {},
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -36533,6 +36543,7 @@
                 }
               },
               "permanent_teams": {},
+              "blocked_partners": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"

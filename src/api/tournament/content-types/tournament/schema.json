@@ -76,6 +76,9 @@
     },
     "permanent_teams": {
       "type": "json"
+    },
+    "blocked_partners": {
+      "type": "json"
     }
   }
 }
