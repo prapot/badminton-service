@@ -281,28 +281,29 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         });
     },
 
-    // Simplified points to rank logic
+    // 4-Step per Division ranking logic (0, 1, 2, 3 stars, then rank up)
     getRankInfoFromPoints(points: number) {
         const TIERS = [
-            { name: 'Bronze', divisions: 3, starsPerDiv: 3 },
-            { name: 'Silver', divisions: 3, starsPerDiv: 3 },
-            { name: 'Gold', divisions: 3, starsPerDiv: 3 },
-            { name: 'Platinum', divisions: 3, starsPerDiv: 3 },
-            { name: 'Diamond', divisions: 3, starsPerDiv: 3 },
-            { name: 'Master', divisions: 1, starsPerDiv: 99999 }
+            { name: 'Bronze', divisions: 3, stepsPerDiv: 4 },
+            { name: 'Silver', divisions: 3, stepsPerDiv: 4 },
+            { name: 'Gold', divisions: 3, stepsPerDiv: 4 },
+            { name: 'Platinum', divisions: 3, stepsPerDiv: 4 },
+            { name: 'Diamond', divisions: 3, stepsPerDiv: 4 },
+            { name: 'Master', divisions: 1, stepsPerDiv: 99999 }
         ];
         const DIVS = ['V', 'IV', 'III', 'II', 'I'];
 
-        let p = points;
-        for (const t of TIERS) {
-            const tierMax = t.divisions * t.starsPerDiv * 100;
+        let p = Math.max(0, points);
+        for (let i = 0; i < TIERS.length; i++) {
+            const t = TIERS[i];
+            const tierMax = t.divisions * t.stepsPerDiv * 100;
             if (p < tierMax || t.name === 'Master') {
                 if (t.name === 'Master') {
                     const s = Math.floor(p / 100);
                     return { tier: 'Master', division: '', divisionNum: 1, stars: s, rankStr: 'Master', weight: 6000 + (s * 10) };
                 }
-                const divIdx = Math.floor(p / (t.starsPerDiv * 100));
-                const stars = Math.floor((p % (t.starsPerDiv * 100)) / 100);
+                const divIdx = Math.floor(p / (t.stepsPerDiv * 100));
+                const stars = Math.min(3, Math.floor((p % (t.stepsPerDiv * 100)) / 100));
                 const activeDivs = DIVS.slice(5 - t.divisions);
                 const divisionStr = activeDivs[divIdx];
                 return {
@@ -311,7 +312,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     divisionNum: t.divisions - divIdx,
                     stars: stars,
                     rankStr: `${t.name} ${divisionStr}`,
-                    weight: 1000 + (TIERS.indexOf(t) * 1000) + (divIdx * 200) + (stars * 50)
+                    weight: 1000 + (i * 1000) + (divIdx * 250) + (stars * 50)
                 };
             }
             p -= tierMax;
