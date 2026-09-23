@@ -120,7 +120,8 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             let rpGain = 0;
 
             if (isRankingMode) {
-                let bpGain = this.calculateBravePoints(true);
+                const currentStreak = Number(ranking.win_streak || 0) + 1;
+                let bpGain = this.calculateBravePoints(true, currentStreak);
                 if (weightDiff > 200) bpGain += Math.floor(weightDiff / 20);
 
                 newBp = oldBp + bpGain;
@@ -320,8 +321,20 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         return { tier: 'Bronze', division: 'III', divisionNum: 3, stars: 0, rankStr: 'Bronze III', weight: 1000 };
     },
 
-    calculateBravePoints(isWin: boolean) {
-        return isWin ? 20 : 10;
+    calculateBravePoints(isWin: boolean, currentStreak: number = 0) {
+        if (!isWin) return 15; // แพ้ได้แต้มปลอบใจ 15 BP (เดิม 10)
+        let bp = 30; // ชนะปกติได้ 30 BP (เดิม 20)
+        // Win streak bonus (สไตล์ ROV ช่วยเร่งแต้มผู้กล้า)
+        if (currentStreak >= 5) {
+            bp += 40; // ชนะติดกัน 5 นัดขึ้นไป ได้ 70 BP
+        } else if (currentStreak >= 4) {
+            bp += 30; // ชนะติดกัน 4 นัด ได้ 60 BP
+        } else if (currentStreak >= 3) {
+            bp += 20; // ชนะติดกัน 3 นัด ได้ 50 BP (ชนะ 2 นัดติดกันได้โบนัส +1 ดาวทันที)
+        } else if (currentStreak >= 2) {
+            bp += 10; // ชนะติดกัน 2 นัด ได้ 40 BP
+        }
+        return bp;
     },
 
     async recalibrateSeason() {
