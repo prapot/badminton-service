@@ -134,7 +134,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 newRp = oldRp + rpGain;
             }
 
-            const rankInfo = this.getRankInfoFromPoints(newRp);
+            const rankInfo = this.getRankInfoFromPoints(newRp, { isLoss: false });
             console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
@@ -200,7 +200,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 newRp = Math.max(0, oldRp - rpLoss);
             }
 
-            const rankInfo = this.getRankInfoFromPoints(newRp);
+            const rankInfo = this.getRankInfoFromPoints(newRp, { isLoss: true });
             console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
@@ -282,42 +282,73 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         });
     },
 
-    // 4-Step per Division ranking logic (0, 1, 2, 3 stars, then rank up)
-    getRankInfoFromPoints(points: number) {
+    // RoV-style 3-star ranking logic (full 3 stars -> rank up to 1 star; 1 star -> 0 stars; 0 stars -> demote to 2 stars)
+    getRankInfoFromPoints(points: number, options?: { isLoss?: boolean }) {
+        const isLoss = options?.isLoss === true;
         const TIERS = [
-            { name: 'Bronze', divisions: 3, stepsPerDiv: 4 },
-            { name: 'Silver', divisions: 3, stepsPerDiv: 4 },
-            { name: 'Gold', divisions: 3, stepsPerDiv: 4 },
-            { name: 'Platinum', divisions: 3, stepsPerDiv: 4 },
-            { name: 'Diamond', divisions: 3, stepsPerDiv: 4 },
-            { name: 'Master', divisions: 1, stepsPerDiv: 99999 }
+            { name: 'Bronze', divisions: 3 },
+            { name: 'Silver', divisions: 3 },
+            { name: 'Gold', divisions: 3 },
+            { name: 'Platinum', divisions: 3 },
+            { name: 'Diamond', divisions: 3 },
+            { name: 'Master', divisions: 1 }
         ];
         const DIVS = ['V', 'IV', 'III', 'II', 'I'];
-
         let p = Math.max(0, points);
-        for (let i = 0; i < TIERS.length; i++) {
-            const t = TIERS[i];
-            const tierMax = t.divisions * t.stepsPerDiv * 100;
-            if (p < tierMax || t.name === 'Master') {
-                if (t.name === 'Master') {
-                    const s = Math.floor(p / 100);
-                    return { tier: 'Master', division: '', divisionNum: 1, stars: s, rankStr: 'Master', weight: 6000 + (s * 10) };
-                }
-                const divIdx = Math.floor(p / (t.stepsPerDiv * 100));
-                const stars = Math.min(3, Math.floor((p % (t.stepsPerDiv * 100)) / 100));
+
+        const pointsPerDiv = 300;
+        const standardTiers = TIERS.filter(t => t.name !== 'Master');
+        const totalDivisions = standardTiers.reduce((acc, t) => acc + t.divisions, 0); // 15
+        const masterThreshold = totalDivisions * pointsPerDiv; // 4500
+
+        if (p >= masterThreshold) {
+            const masterPoints = p - masterThreshold;
+            const stars = Math.floor(masterPoints / 100);
+            return {
+                tier: 'Master',
+                division: '',
+                divisionNum: 1,
+                stars: stars,
+                rankStr: 'Master',
+                weight: 6000 + (stars * 10)
+            };
+        }
+
+        let divIdx = Math.floor(p / pointsPerDiv);
+        let rem = p % pointsPerDiv;
+        let stars = Math.floor(rem / 100);
+
+        // Division boundary handling (e.g. 300, 600, 900 RP):
+        // - On normal/win/rank-up: represents full 3 stars of the previous division
+        // - On loss (or at 0 stars of current division): represents 0 stars of the current division
+        if (rem === 0 && divIdx > 0) {
+            if (!isLoss) {
+                divIdx = divIdx - 1;
+                stars = 3;
+            } else {
+                stars = 0;
+            }
+        }
+
+        let runningDivs = 0;
+        for (let i = 0; i < standardTiers.length; i++) {
+            const t = standardTiers[i];
+            if (divIdx < runningDivs + t.divisions) {
+                const localDivIdx = divIdx - runningDivs;
                 const activeDivs = DIVS.slice(5 - t.divisions);
-                const divisionStr = activeDivs[divIdx];
+                const divisionStr = activeDivs[localDivIdx];
                 return {
                     tier: t.name,
                     division: divisionStr,
-                    divisionNum: t.divisions - divIdx,
+                    divisionNum: t.divisions - localDivIdx,
                     stars: stars,
                     rankStr: `${t.name} ${divisionStr}`,
-                    weight: 1000 + (i * 1000) + (divIdx * 250) + (stars * 50)
+                    weight: 1000 + (i * 1000) + (localDivIdx * 250) + (stars * 50)
                 };
             }
-            p -= tierMax;
+            runningDivs += t.divisions;
         }
+
         return { tier: 'Bronze', division: 'III', divisionNum: 3, stars: 0, rankStr: 'Bronze III', weight: 1000 };
     },
 
