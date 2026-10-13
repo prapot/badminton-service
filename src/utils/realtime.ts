@@ -77,7 +77,7 @@ export function notifyMatchAlert(matchId: number, teamA: MatchAlertPlayer[], tea
 
 /**
  * Find the tournament documentIds of the rows matching `where` in a tournament-related model.
- * Runs outside the caller's transaction.
+ * Joins the caller's transaction if one is active (see notifyTournamentOf).
  */
 export async function findTournamentDocumentIds(uid: string, where: Record<string, unknown>): Promise<string[]> {
   if (!where) return [];
@@ -92,14 +92,32 @@ export async function findTournamentDocumentIds(uid: string, where: Record<strin
   return [...new Set(rows.map((r) => r.tournament_id?.documentId).filter(Boolean))];
 }
 
-/** Deferred lookup + notify, so rows written inside a transaction are visible once it commits. */
+const LOOKUP_DELAY_MS = 50;
+// Give up on a transaction that never finishes rather than retrying forever.
+const LOOKUP_MAX_WAIT_MS = 30_000;
+
+/**
+ * Deferred lookup + notify, so rows written inside a transaction are visible once it commits.
+ *
+ * Timers inherit Strapi's transaction context (AsyncLocalStorage), so a lookup that runs while the
+ * caller's transaction is still open joins it, and fails with "Transaction query already complete"
+ * when the transaction commits under it. Wait until the transaction is done (Strapi clears the trx
+ * from the shared context on commit/rollback) and only then query.
+ */
 export function notifyTournamentOf(uid: string, where: Record<string, unknown> | undefined, scope: ChangeScope) {
   if (!where || !getClient()) return;
-  setTimeout(() => {
+  const startedAt = Date.now();
+  const attempt = () => {
+    if (strapi.db.inTransaction()) {
+      if (Date.now() - startedAt < LOOKUP_MAX_WAIT_MS) setTimeout(attempt, LOOKUP_DELAY_MS);
+      else console.error('[realtime] resolve tournament skipped: transaction still open');
+      return;
+    }
     findTournamentDocumentIds(uid, where)
       .then((ids) => ids.forEach((id) => notifyTournamentChanged(id, scope)))
       .catch((err) => console.error('[realtime] resolve tournament failed:', err?.message || err));
-  }, 50);
+  };
+  setTimeout(attempt, LOOKUP_DELAY_MS);
 }
 
 const MATCH_UID = 'api::match.match';
