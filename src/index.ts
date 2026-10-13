@@ -1,5 +1,6 @@
 // import type { Core } from '@strapi/strapi';
 import { subscribeTournamentRealtime } from './utils/realtime';
+import { ensureLineUserIdUniqueIndex } from './utils/lineUserIdIndex';
 
 export default {
   /**
@@ -17,7 +18,9 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap({ strapi }) {
+  async bootstrap({ strapi }) {
+    await ensureLineUserIdUniqueIndex(strapi);
+
     // Register global lifecycle for matches to ensure it works reliably in Strapi v5
     strapi.db.lifecycles.subscribe({
       models: ['api::match.match'],

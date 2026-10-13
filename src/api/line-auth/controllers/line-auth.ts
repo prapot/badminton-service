@@ -6,6 +6,7 @@
  */
 
 import crypto from 'crypto';
+import { isLineUserIdConflict } from '../../../utils/lineUserIdIndex';
 
 const USER_UID = 'plugin::users-permissions.user';
 
@@ -23,7 +24,9 @@ async function getAuthUser(ctx: any) {
   try {
     const payload = await (strapi as any).plugin('users-permissions').service('jwt').verify(authHeader.substring(7));
     if (!payload?.id) return null;
-    return await strapi.db.query(USER_UID).findOne({ where: { id: payload.id } });
+    const user = await strapi.db.query(USER_UID).findOne({ where: { id: payload.id } });
+    // a blocked user's JWT may still be unexpired — treat it as signed out
+    return user && !user.blocked ? user : null;
   } catch {
     return null;
   }
@@ -60,16 +63,23 @@ function readLinkTicket(ticket: unknown): LineProfile | null {
   }
 }
 
+const LINE_TAKEN_MESSAGE = 'บัญชี LINE นี้เชื่อมต่อกับผู้ใช้อื่นอยู่แล้ว';
+
 /** Link a verified LINE account to user; returns an error message instead of throwing */
 async function attachLine(user: any, profile: LineProfile): Promise<string | null> {
   const owner = await strapi.db.query(USER_UID).findOne({ where: { line_user_id: profile.lineUserId } });
   if (owner && owner.id !== user.id) {
-    return 'บัญชี LINE นี้เชื่อมต่อกับผู้ใช้อื่นอยู่แล้ว';
+    return LINE_TAKEN_MESSAGE;
   }
-  await strapi.db.query(USER_UID).update({
-    where: { id: user.id },
-    data: { line_user_id: profile.lineUserId, line_display_name: profile.displayName },
-  });
+  try {
+    await strapi.db.query(USER_UID).update({
+      where: { id: user.id },
+      data: { line_user_id: profile.lineUserId, line_display_name: profile.displayName },
+    });
+  } catch (e) {
+    if (isLineUserIdConflict(e)) return LINE_TAKEN_MESSAGE;
+    throw e;
+  }
   return null;
 }
 
@@ -85,7 +95,7 @@ async function pickUsername(displayName: string): Promise<string> {
   return `${base}_${crypto.randomUUID().slice(0, 8)}`;
 }
 
-/** Exchange the authorization code and verify the ID token (incl. nonce) with LINE */
+/** Exchange the authorization code (with the PKCE verifier) and verify the ID token (incl. nonce) with LINE */
 async function fetchLineProfile(body: any): Promise<LineProfile> {
   const channelId = process.env.LINE_CHANNEL_ID;
   const channelSecret = process.env.LINE_CHANNEL_SECRET;
@@ -93,8 +103,8 @@ async function fetchLineProfile(body: any): Promise<LineProfile> {
     throw new Error('LINE Login ยังไม่ได้ตั้งค่าบนเซิร์ฟเวอร์');
   }
 
-  const { code, redirectUri, nonce } = body || {};
-  if (!code || !redirectUri || !nonce) {
+  const { code, redirectUri, nonce, codeVerifier } = body || {};
+  if (!code || !redirectUri || !nonce || !codeVerifier) {
     throw new Error('ข้อมูลจาก LINE ไม่ครบ');
   }
 
@@ -107,6 +117,7 @@ async function fetchLineProfile(body: any): Promise<LineProfile> {
       redirect_uri: redirectUri,
       client_id: channelId,
       client_secret: channelSecret,
+      code_verifier: codeVerifier,
     }),
   });
   const token = (await tokenRes.json().catch(() => ({}))) as any;
@@ -210,7 +221,7 @@ export default {
     }
 
     if (await strapi.db.query(USER_UID).findOne({ where: { line_user_id: profile.lineUserId } })) {
-      return ctx.badRequest('บัญชี LINE นี้เชื่อมต่อกับผู้ใช้อื่นอยู่แล้ว');
+      return ctx.badRequest(LINE_TAKEN_MESSAGE);
     }
 
     const role = await strapi.db.query('plugin::users-permissions.role').findOne({
@@ -218,16 +229,23 @@ export default {
     });
     if (!role) return ctx.internalServerError('Impossible to find the default role');
 
-    const user = await (strapi as any).plugin('users-permissions').service('user').add({
-      username: await pickUsername(profile.displayName),
-      email: `${profile.lineUserId.toLowerCase()}@${PLACEHOLDER_EMAIL_DOMAIN}`,
-      password: crypto.randomBytes(24).toString('base64url'),
-      provider: 'local',
-      confirmed: true,
-      role: role.id,
-      line_user_id: profile.lineUserId,
-      line_display_name: profile.displayName,
-    });
+    let user;
+    try {
+      user = await (strapi as any).plugin('users-permissions').service('user').add({
+        username: await pickUsername(profile.displayName),
+        email: `${profile.lineUserId.toLowerCase()}@${PLACEHOLDER_EMAIL_DOMAIN}`,
+        password: crypto.randomBytes(24).toString('base64url'),
+        provider: 'local',
+        confirmed: true,
+        role: role.id,
+        line_user_id: profile.lineUserId,
+        line_display_name: profile.displayName,
+      });
+    } catch (e) {
+      // double-click / two tabs: the other request already created the account
+      if (isLineUserIdConflict(e)) return ctx.badRequest(LINE_TAKEN_MESSAGE);
+      throw e;
+    }
 
     const jwt = (strapi as any).plugin('users-permissions').service('jwt').issue({ id: user.id });
     return ctx.send({ jwt });
