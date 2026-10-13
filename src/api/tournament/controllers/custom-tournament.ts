@@ -3,6 +3,7 @@
  */
 
 import { factories } from '@strapi/strapi';
+import { notifyMatchAlert, notifyTournamentChanged, MatchAlertPlayer } from '../../../utils/realtime';
 
 async function getAuthUser(ctx: any) {
   if (ctx.state.user) return ctx.state.user;
@@ -21,6 +22,24 @@ async function getAuthUser(ctx: any) {
     }
   }
   return null;
+}
+
+/** Player ids as used by the endless-mode UI: users are positive, guests are -tournamentPlayer.id */
+async function toAlertPlayers(playerIds: number[]): Promise<MatchAlertPlayer[]> {
+  const userIds = playerIds.filter(pid => pid > 0);
+  const guestTpIds = playerIds.filter(pid => pid < 0).map(pid => -pid);
+  const [users, guests] = await Promise.all([
+    userIds.length
+      ? strapi.db.query('plugin::users-permissions.user').findMany({ where: { id: { $in: userIds } }, select: ['id', 'username'] })
+      : [],
+    guestTpIds.length
+      ? strapi.db.query('api::tournament-player.tournament-player').findMany({ where: { id: { $in: guestTpIds } }, select: ['id', 'guest_name'] })
+      : [],
+  ]) as [any[], any[]];
+  return playerIds.map(pid => {
+    if (pid > 0) return { id: pid, name: users.find(u => u.id === pid)?.username || '' };
+    return { id: pid, name: guests.find(g => g.id === -pid)?.guest_name || '' };
+  });
 }
 
 export default {
@@ -49,7 +68,19 @@ export default {
       
       const service = strapi.service('api::tournament.custom-tournament');
       const result = await (service as any).createMatchManual(id, playerIdsA, playerIdsB);
-      
+
+      // The transaction has committed — tell viewers to refetch and alert the players.
+      const tournament = (await strapi.db.query('api::tournament.tournament').findOne({
+        where: { $or: [{ documentId: id }, ...(isNaN(Number(id)) ? [] : [{ id: Number(id) }])] },
+        select: ['documentId'],
+      })) as any;
+      notifyTournamentChanged(tournament?.documentId);
+      const [teamA, teamB] = await Promise.all([
+        toAlertPlayers(playerIdsA || []),
+        toAlertPlayers(playerIdsB || []),
+      ]);
+      notifyMatchAlert(result?.id || 0, teamA, teamB);
+
       ctx.body = { data: result };
     } catch (err: any) {
       return ctx.badRequest(err.message);
