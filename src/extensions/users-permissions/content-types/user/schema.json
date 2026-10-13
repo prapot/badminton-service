@@ -112,6 +112,15 @@
     },
     "nickname": {
       "type": "string"
+    },
+    "line_user_id": {
+      "type": "string",
+      "private": true,
+      "searchable": false
+    },
+    "line_display_name": {
+      "type": "string",
+      "private": true
     }
   }
 }

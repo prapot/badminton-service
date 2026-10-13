@@ -1414,6 +1414,8 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    line_display_name: Schema.Attribute.String & Schema.Attribute.Private;
+    line_user_id: Schema.Attribute.String & Schema.Attribute.Private;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
