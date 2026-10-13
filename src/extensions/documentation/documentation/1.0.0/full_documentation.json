@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-09-27T17:10:34.258Z"
+    "x-generation-date": "2026-10-13T10:50:06.032Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -12491,6 +12491,12 @@
                         "nickname": {
                           "type": "string"
                         },
+                        "line_user_id": {
+                          "type": "string"
+                        },
+                        "line_display_name": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -15711,6 +15717,12 @@
                 "nickname": {
                   "type": "string"
                 },
+                "line_user_id": {
+                  "type": "string"
+                },
+                "line_display_name": {
+                  "type": "string"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -18147,6 +18159,12 @@
                               }
                             },
                             "nickname": {
+                              "type": "string"
+                            },
+                            "line_user_id": {
+                              "type": "string"
+                            },
+                            "line_display_name": {
                               "type": "string"
                             },
                             "createdAt": {
@@ -22023,6 +22041,12 @@
               "nickname": {
                 "type": "string"
               },
+              "line_user_id": {
+                "type": "string"
+              },
+              "line_display_name": {
+                "type": "string"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -24679,6 +24703,12 @@
                       }
                     },
                     "nickname": {
+                      "type": "string"
+                    },
+                    "line_user_id": {
+                      "type": "string"
+                    },
+                    "line_display_name": {
                       "type": "string"
                     },
                     "createdAt": {
@@ -27556,6 +27586,12 @@
                         "nickname": {
                           "type": "string"
                         },
+                        "line_user_id": {
+                          "type": "string"
+                        },
+                        "line_display_name": {
+                          "type": "string"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -30300,6 +30336,12 @@
                               }
                             },
                             "nickname": {
+                              "type": "string"
+                            },
+                            "line_user_id": {
+                              "type": "string"
+                            },
+                            "line_display_name": {
                               "type": "string"
                             },
                             "createdAt": {
@@ -33194,6 +33236,12 @@
                                       }
                                     },
                                     "nickname": {
+                                      "type": "string"
+                                    },
+                                    "line_user_id": {
+                                      "type": "string"
+                                    },
+                                    "line_display_name": {
                                       "type": "string"
                                     },
                                     "createdAt": {
@@ -36304,6 +36352,12 @@
                           }
                         },
                         "nickname": {
+                          "type": "string"
+                        },
+                        "line_user_id": {
+                          "type": "string"
+                        },
+                        "line_display_name": {
                           "type": "string"
                         },
                         "createdAt": {
