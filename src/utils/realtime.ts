@@ -2,7 +2,7 @@
  * Realtime (Pusher) helpers.
  *
  * Channels:
- *  - `tournament-<documentId>`  event `changed`      → clients refetch the tournament (no payload data)
+ *  - `tournament-<documentId>`  event `changed`      → clients refetch; payload `{ scope: 'matches' | 'tournament' }`
  *  - `user-<userId>`            event `match-alert`  → "your match is up" popup for that player
  *
  * All triggers are fire-and-forget: a Pusher outage must never fail or slow down an API request.
@@ -29,24 +29,33 @@ function getClient(): Pusher | null {
   return client;
 }
 
+/**
+ * What clients should refetch:
+ *  - `matches`    → only the match list (score entered, match created)
+ *  - `tournament` → tournament + players (+ matches); also used when rankings may have changed
+ */
+export type ChangeScope = 'matches' | 'tournament';
+
 // Coalesce bursts (e.g. creating a match touches teams, team players and the match itself,
 // and draft/published tournament rows both fire lifecycles) into one event per tournament.
+// The wider scope wins when a burst mixes both.
 const DEBOUNCE_MS = 300;
-const pending = new Map<string, NodeJS.Timeout>();
+const pending = new Map<string, { timer: NodeJS.Timeout; scope: ChangeScope }>();
 
-export function notifyTournamentChanged(tournamentDocumentId: string | null | undefined) {
+export function notifyTournamentChanged(tournamentDocumentId: string | null | undefined, scope: ChangeScope = 'tournament') {
   if (!tournamentDocumentId || !getClient()) return;
   const existing = pending.get(tournamentDocumentId);
-  if (existing) clearTimeout(existing);
-  pending.set(
-    tournamentDocumentId,
-    setTimeout(() => {
+  if (existing) clearTimeout(existing.timer);
+  const mergedScope: ChangeScope = existing?.scope === 'tournament' ? 'tournament' : scope;
+  pending.set(tournamentDocumentId, {
+    scope: mergedScope,
+    timer: setTimeout(() => {
       pending.delete(tournamentDocumentId);
       getClient()
-        ?.trigger(`tournament-${tournamentDocumentId}`, 'changed', { at: Date.now() })
+        ?.trigger(`tournament-${tournamentDocumentId}`, 'changed', { scope: mergedScope, at: Date.now() })
         .catch((err) => console.error('[realtime] tournament trigger failed:', err?.message || err));
-    }, DEBOUNCE_MS)
-  );
+    }, DEBOUNCE_MS),
+  });
 }
 
 export interface MatchAlertPlayer {
@@ -84,42 +93,56 @@ export async function findTournamentDocumentIds(uid: string, where: Record<strin
 }
 
 /** Deferred lookup + notify, so rows written inside a transaction are visible once it commits. */
-export function notifyTournamentOf(uid: string, where: Record<string, unknown> | undefined) {
+export function notifyTournamentOf(uid: string, where: Record<string, unknown> | undefined, scope: ChangeScope) {
   if (!where || !getClient()) return;
   setTimeout(() => {
     findTournamentDocumentIds(uid, where)
-      .then((ids) => ids.forEach(notifyTournamentChanged))
+      .then((ids) => ids.forEach((id) => notifyTournamentChanged(id, scope)))
       .catch((err) => console.error('[realtime] resolve tournament failed:', err?.message || err));
   }, 50);
+}
+
+const MATCH_UID = 'api::match.match';
+
+/**
+ * Match create/score changes only touch the match list, except a match marked `done`,
+ * which updates rankings shown with the tournament's players. Deletes and every other
+ * model refresh the whole tournament.
+ */
+function scopeFor(uid: string, action: 'create' | 'update', result?: any): ChangeScope {
+  if (uid !== MATCH_UID) return 'tournament';
+  if (action === 'update' && result?.match_status === 'done') return 'tournament';
+  return 'matches';
 }
 
 /**
  * DB lifecycle subscriber that emits `tournament-<id>:changed` whenever a row of the given
  * tournament-related models changes. Deletes look the tournament up before the row is gone.
+ * Register it after other subscribers (e.g. ranking updates) so their writes are done first.
  */
 export function subscribeTournamentRealtime(models: string[]) {
+  const notifyDeleted = (event: any) =>
+    (event.state.tournamentIds || []).forEach((id: string) => notifyTournamentChanged(id, 'tournament'));
+  const lookupBeforeDelete = async (event: any) => {
+    event.state.tournamentIds = await findTournamentDocumentIds(event.model.uid, event.params?.where).catch(() => []);
+  };
+
   strapi.db.lifecycles.subscribe({
     models,
     afterCreate(event: any) {
-      notifyTournamentOf(event.model.uid, event.result?.id ? { id: event.result.id } : undefined);
+      const uid = event.model.uid;
+      notifyTournamentOf(uid, event.result?.id ? { id: event.result.id } : undefined, scopeFor(uid, 'create'));
     },
     afterUpdate(event: any) {
-      notifyTournamentOf(event.model.uid, event.result?.id ? { id: event.result.id } : event.params?.where);
+      const uid = event.model.uid;
+      notifyTournamentOf(uid, event.result?.id ? { id: event.result.id } : event.params?.where, scopeFor(uid, 'update', event.result));
     },
     afterUpdateMany(event: any) {
-      notifyTournamentOf(event.model.uid, event.params?.where);
+      notifyTournamentOf(event.model.uid, event.params?.where, 'tournament');
     },
-    async beforeDelete(event: any) {
-      event.state.tournamentIds = await findTournamentDocumentIds(event.model.uid, event.params?.where).catch(() => []);
-    },
-    afterDelete(event: any) {
-      (event.state.tournamentIds || []).forEach(notifyTournamentChanged);
-    },
-    async beforeDeleteMany(event: any) {
-      event.state.tournamentIds = await findTournamentDocumentIds(event.model.uid, event.params?.where).catch(() => []);
-    },
-    afterDeleteMany(event: any) {
-      (event.state.tournamentIds || []).forEach(notifyTournamentChanged);
-    },
+    beforeDelete: lookupBeforeDelete,
+    afterDelete: notifyDeleted,
+    beforeDeleteMany: lookupBeforeDelete,
+    afterDeleteMany: notifyDeleted,
   });
 }

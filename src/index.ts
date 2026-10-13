@@ -18,13 +18,6 @@ export default {
    * run jobs, or perform some special logic.
    */
   bootstrap({ strapi }) {
-    // Push `tournament-<documentId>:changed` to connected clients so they refetch instead of polling
-    subscribeTournamentRealtime([
-      'api::match.match',
-      'api::tournament.tournament',
-      'api::tournament-player.tournament-player',
-    ]);
-
     // Register global lifecycle for matches to ensure it works reliably in Strapi v5
     strapi.db.lifecycles.subscribe({
       models: ['api::match.match'],
@@ -106,5 +99,13 @@ export default {
         }
       },
     });
+
+    // Push `tournament-<documentId>:changed` to connected clients so they refetch instead of polling.
+    // Registered last: lifecycle subscribers run in order, so ranking updates above finish first.
+    subscribeTournamentRealtime([
+      'api::match.match',
+      'api::tournament.tournament',
+      'api::tournament-player.tournament-player',
+    ]);
   },
 };

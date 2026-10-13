@@ -74,7 +74,7 @@ export default {
         where: { $or: [{ documentId: id }, ...(isNaN(Number(id)) ? [] : [{ id: Number(id) }])] },
         select: ['documentId'],
       })) as any;
-      notifyTournamentChanged(tournament?.documentId);
+      notifyTournamentChanged(tournament?.documentId, 'matches');
       const [teamA, teamB] = await Promise.all([
         toAlertPlayers(playerIdsA || []),
         toAlertPlayers(playerIdsB || []),
