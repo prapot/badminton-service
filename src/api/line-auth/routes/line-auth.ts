@@ -3,6 +3,39 @@ export default {
   routes: [
     {
       method: 'POST',
+      path: '/line-auth/start',
+      handler: 'line-auth.start',
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: 'POST',
+      path: '/line-auth/callback',
+      handler: 'line-auth.callback',
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: 'POST',
+      path: '/line-auth/handoff',
+      handler: 'line-auth.publishHandoff',
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: 'GET',
+      path: '/line-auth/handoff/:id',
+      handler: 'line-auth.claimHandoff',
+      config: {
+        auth: false,
+      },
+    },
+    // legacy: browser-held state (pre-/start frontends) — remove once no client calls it
+    {
+      method: 'POST',
       path: '/line-auth/login',
       handler: 'line-auth.login',
       config: {
