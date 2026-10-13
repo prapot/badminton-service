@@ -8,6 +8,19 @@ SERVER_PATH="/root/www/badminton-service"
 PM2_APP="badminton-service"
 # =========================
 
+# ===== Deploy จาก branch develop เท่านั้น =====
+DEPLOY_BRANCH="develop"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "$DEPLOY_BRANCH" ]; then
+  echo "❌ Deploy ได้จาก branch \"$DEPLOY_BRANCH\" เท่านั้น (ตอนนี้อยู่ที่ \"$CURRENT_BRANCH\")"
+  echo "   git checkout $DEPLOY_BRANCH แล้วลองใหม่"
+  exit 1
+fi
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  echo "⚠️  มีไฟล์ที่ยังไม่ได้ commit — ไฟล์เหล่านี้จะถูก deploy ไปด้วย:"
+  git status --short --untracked-files=no
+fi
+
 echo "🔨 Building admin panel locally..."
 NODE_ENV=production npm run build
 
