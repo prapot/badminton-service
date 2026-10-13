@@ -222,9 +222,12 @@ export default factories.createCoreController('api::match-history.match-history'
       // Show everyone even if they played 1 time (>= 1)
       partnerList = partnerList.filter((p: any) => p.matchesPlayed >= 1);
 
-      // Sort
+      // Sort by a smoothed win rate (wins+1)/(played+2) so a single lucky 1/1 doesn't outrank
+      // a proven 6/8; the displayed winRate stays the raw percentage.
+      const smoothedWinRate = (wins: number, played: number) => (wins + 1) / (played + 2);
       partnerList.sort((a: any, b: any) => {
-        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+        const diff = smoothedWinRate(b.wins, b.matchesPlayed) - smoothedWinRate(a.wins, a.matchesPlayed);
+        if (diff !== 0) return diff;
         return b.matchesPlayed - a.matchesPlayed;
       });
 
@@ -376,8 +379,11 @@ export default factories.createCoreController('api::match-history.match-history'
 
       // Sort by Win Rate ASCENDING (lowest win rate first)
       // If win rates are equal, sort by Losses DESCENDING (highest losses first)
+      // Same smoothing as partners: one loss in one game shouldn't make someone your top nemesis
+      const smoothedNemesisWinRate = (wins: number, played: number) => (wins + 1) / (played + 2);
       nemesisList.sort((a: any, b: any) => {
-        if (a.winRate !== b.winRate) return a.winRate - b.winRate;
+        const diff = smoothedNemesisWinRate(a.wins, a.matchesPlayed) - smoothedNemesisWinRate(b.wins, b.matchesPlayed);
+        if (diff !== 0) return diff;
         return b.losses - a.losses;
       });
 
