@@ -8,6 +8,8 @@ module.exports = {
             env: {
                 NODE_ENV: 'production',
                 PORT: 1337,
+                // Strapi reads only .env unless ENV_PATH is set — use the committed production env
+                ENV_PATH: '/root/www/badminton-service/.env.production',
             },
             instances: 1,
             autorestart: true,

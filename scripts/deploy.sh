@@ -49,7 +49,8 @@ ssh "$SERVER_USER@$SERVER_IP" << 'ENDSSH'
 
   cd /root/www/badminton-service
   npm install --omit=dev
-  $PM2 reload badminton-service || $PM2 start ecosystem.config.js --env production
+  # startOrReload + --update-env so changes to ecosystem.config.js env (e.g. ENV_PATH) are applied
+  $PM2 startOrReload ecosystem.config.js --update-env
   $PM2 save
   $PM2 status
 ENDSSH
