@@ -1,6 +1,6 @@
 
 import { factories } from '@strapi/strapi';
-import { calculateBravePoints, computeLoserUpdate, computeRevert, computeWinnerUpdate } from '../utils/rankingMath';
+import { calculateBravePoints, computeLoserUpdate, computeRevert, computeWinnerUpdate, currentRankInfo, getRankInfoFromPoints, nextRankInfo } from '../utils/rankingMath';
 
 export default factories.createCoreService('api::ranking.ranking', ({ strapi }) => ({
     async getOrCreateCurrentSeason() {
@@ -103,8 +103,8 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         // Calculate average weights for difficulty adjustment (only if ranking mode)
         let weightDiff = 0;
         if (isRankingMode) {
-            const avgWeightWinners = winnerRankings.reduce((sum, r) => sum + this.getRankInfoFromPoints((r as any).ranking_points).weight, 0) / winnerRankings.length;
-            const avgWeightLosers = loserRankings.reduce((sum, r) => sum + this.getRankInfoFromPoints((r as any).ranking_points).weight, 0) / loserRankings.length;
+            const avgWeightWinners = winnerRankings.reduce((sum, r) => sum + currentRankInfo(r as any, Number((r as any).ranking_points || 0)).weight, 0) / winnerRankings.length;
+            const avgWeightLosers = loserRankings.reduce((sum, r) => sum + currentRankInfo(r as any, Number((r as any).ranking_points || 0)).weight, 0) / loserRankings.length;
             weightDiff = avgWeightLosers - avgWeightWinners;
         }
 
@@ -116,10 +116,10 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
 
             const streakBefore = Number(ranking.win_streak || 0);
             const { newRp, newBp, rpChange: rpGain, bpChange } = computeWinnerUpdate({
-                oldRp, oldBp, streakBefore, tier: this.getRankInfoFromPoints(oldRp).tier, weightDiff, isRankingMode
+                oldRp, oldBp, streakBefore, tier: currentRankInfo(ranking, oldRp).tier, weightDiff, isRankingMode
             });
 
-            const rankInfo = this.getRankInfoFromPoints(newRp, { isLoss: false });
+            const rankInfo = nextRankInfo(ranking, oldRp, newRp, false);
             console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
@@ -162,13 +162,13 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             const oldRp = Number(ranking.ranking_points || 0);
             const oldBp = Number(ranking.brave_points || 0);
 
-            const oldRankInfo = this.getRankInfoFromPoints(oldRp);
+            const oldRankInfo = currentRankInfo(ranking, oldRp);
             const streakBefore = Number(ranking.win_streak || 0);
             const { newRp, newBp, rpChange, bpChange } = computeLoserUpdate({
                 oldRp, oldBp, tier: oldRankInfo.tier, weightDiff, isRankingMode
             });
 
-            const rankInfo = this.getRankInfoFromPoints(newRp, { isLoss: true });
+            const rankInfo = nextRankInfo(ranking, oldRp, newRp, true);
             console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
@@ -227,7 +227,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             });
             const data = computeRevert({ ranking, history, isLatest: newerCount === 0 });
             // ถอยแมตช์ชนะ = RP ลดลง → แสดงผลขอบ division แบบเดียวกับตอนแพ้
-            const rankInfo = this.getRankInfoFromPoints(data.ranking_points, { isLoss: history.is_win === true });
+            const rankInfo = nextRankInfo(ranking, Number(ranking.ranking_points || 0), data.ranking_points, history.is_win === true);
 
             await strapi.db.query('api::ranking.ranking').update({
                 where: { id: ranking.id },
@@ -247,74 +247,8 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         });
     },
 
-    // RoV-style 3-star ranking logic (full 3 stars -> rank up to 1 star; 1 star -> 0 stars; 0 stars -> demote to 2 stars)
     getRankInfoFromPoints(points: number, options?: { isLoss?: boolean }) {
-        const isLoss = options?.isLoss === true;
-        const TIERS = [
-            { name: 'Bronze', divisions: 3 },
-            { name: 'Silver', divisions: 3 },
-            { name: 'Gold', divisions: 3 },
-            { name: 'Platinum', divisions: 3 },
-            { name: 'Diamond', divisions: 3 },
-            { name: 'Master', divisions: 1 }
-        ];
-        const DIVS = ['V', 'IV', 'III', 'II', 'I'];
-        let p = Math.max(0, points);
-
-        const pointsPerDiv = 300;
-        const standardTiers = TIERS.filter(t => t.name !== 'Master');
-        const totalDivisions = standardTiers.reduce((acc, t) => acc + t.divisions, 0); // 15
-        const masterThreshold = totalDivisions * pointsPerDiv; // 4500
-
-        if (p >= masterThreshold) {
-            const masterPoints = p - masterThreshold;
-            const stars = Math.floor(masterPoints / 100);
-            return {
-                tier: 'Master',
-                division: '',
-                divisionNum: 1,
-                stars: stars,
-                rankStr: 'Master',
-                weight: 6000 + (stars * 10)
-            };
-        }
-
-        let divIdx = Math.floor(p / pointsPerDiv);
-        let rem = p % pointsPerDiv;
-        let stars = Math.floor(rem / 100);
-
-        // Division boundary handling (e.g. 300, 600, 900 RP):
-        // - On normal/win/rank-up: represents full 3 stars of the previous division
-        // - On loss (or at 0 stars of current division): represents 0 stars of the current division
-        if (rem === 0 && divIdx > 0) {
-            if (!isLoss) {
-                divIdx = divIdx - 1;
-                stars = 3;
-            } else {
-                stars = 0;
-            }
-        }
-
-        let runningDivs = 0;
-        for (let i = 0; i < standardTiers.length; i++) {
-            const t = standardTiers[i];
-            if (divIdx < runningDivs + t.divisions) {
-                const localDivIdx = divIdx - runningDivs;
-                const activeDivs = DIVS.slice(5 - t.divisions);
-                const divisionStr = activeDivs[localDivIdx];
-                return {
-                    tier: t.name,
-                    division: divisionStr,
-                    divisionNum: t.divisions - localDivIdx,
-                    stars: stars,
-                    rankStr: `${t.name} ${divisionStr}`,
-                    weight: 1000 + (i * 1000) + (localDivIdx * 250) + (stars * 50)
-                };
-            }
-            runningDivs += t.divisions;
-        }
-
-        return { tier: 'Bronze', division: 'III', divisionNum: 3, stars: 0, rankStr: 'Bronze III', weight: 1000 };
+        return getRankInfoFromPoints(points, options);
     },
 
     calculateBravePoints(isWin: boolean, currentStreak: number = 0) {

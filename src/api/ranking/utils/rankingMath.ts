@@ -9,6 +9,110 @@ export const MAX_UPSET_BONUS = 30;
 export const UNDERDOG_LOSS_WEIGHT_DIFF = 500;
 export const UNDERDOG_LOSS_BONUS = 10;
 
+export interface RankInfo {
+    tier: string;
+    division: string;
+    divisionNum: number;
+    stars: number;
+    rankStr: string;
+    weight: number;
+}
+
+// RoV-style 3-star ranking logic (full 3 stars -> rank up to 1 star; 1 star -> 0 stars; 0 stars -> demote to 2 stars)
+export function getRankInfoFromPoints(points: number, options?: { isLoss?: boolean }): RankInfo {
+    const isLoss = options?.isLoss === true;
+    const TIERS = [
+        { name: 'Bronze', divisions: 3 },
+        { name: 'Silver', divisions: 3 },
+        { name: 'Gold', divisions: 3 },
+        { name: 'Platinum', divisions: 3 },
+        { name: 'Diamond', divisions: 3 },
+        { name: 'Master', divisions: 1 }
+    ];
+    const DIVS = ['V', 'IV', 'III', 'II', 'I'];
+    let p = Math.max(0, points);
+
+    const pointsPerDiv = 300;
+    const standardTiers = TIERS.filter(t => t.name !== 'Master');
+    const totalDivisions = standardTiers.reduce((acc, t) => acc + t.divisions, 0); // 15
+    const masterThreshold = totalDivisions * pointsPerDiv; // 4500
+
+    if (p >= masterThreshold) {
+        const masterPoints = p - masterThreshold;
+        const stars = Math.floor(masterPoints / 100);
+        return {
+            tier: 'Master',
+            division: '',
+            divisionNum: 1,
+            stars: stars,
+            rankStr: 'Master',
+            weight: 6000 + (stars * 10)
+        };
+    }
+
+    let divIdx = Math.floor(p / pointsPerDiv);
+    let rem = p % pointsPerDiv;
+    let stars = Math.floor(rem / 100);
+
+    // Division boundary handling (e.g. 300, 600, 900 RP):
+    // - On normal/win/rank-up: represents full 3 stars of the previous division
+    // - On loss (or at 0 stars of current division): represents 0 stars of the current division
+    if (rem === 0 && divIdx > 0) {
+        if (!isLoss) {
+            divIdx = divIdx - 1;
+            stars = 3;
+        } else {
+            stars = 0;
+        }
+    }
+
+    let runningDivs = 0;
+    for (let i = 0; i < standardTiers.length; i++) {
+        const t = standardTiers[i];
+        if (divIdx < runningDivs + t.divisions) {
+            const localDivIdx = divIdx - runningDivs;
+            const activeDivs = DIVS.slice(5 - t.divisions);
+            const divisionStr = activeDivs[localDivIdx];
+            return {
+                tier: t.name,
+                division: divisionStr,
+                divisionNum: t.divisions - localDivIdx,
+                stars: stars,
+                rankStr: `${t.name} ${divisionStr}`,
+                weight: 1000 + (i * 1000) + (localDivIdx * 250) + (stars * 50)
+            };
+        }
+        runningDivs += t.divisions;
+    }
+
+    return { tier: 'Bronze', division: 'III', divisionNum: 3, stars: 0, rankStr: 'Bronze III', weight: 1000 };
+}
+
+/** Rank fields as stored on a ranking row */
+export interface StoredRank {
+    rank?: string | null;
+    stars?: number | null;
+    rank_tier?: string | null;
+    rank_division?: number | null;
+}
+
+/**
+ * RP ตรงขอบ division (เช่น 900) แทนได้ 2 สถานะ: "Bronze I 3 ดาว" หรือ "Silver III 0 ดาว"
+ * ขึ้นกับผลแมตช์ล่าสุด → ใช้แรงค์ที่บันทึกไว้ (ที่ผู้เล่นเห็น) ถ้ายังสอดคล้องกับ RP
+ */
+export function currentRankInfo(stored: StoredRank, rp: number): RankInfo {
+    const asWin = getRankInfoFromPoints(rp, { isLoss: false });
+    const asLoss = getRankInfoFromPoints(rp, { isLoss: true });
+    if (stored.rank === asLoss.rankStr && stored.rank !== asWin.rankStr) return asLoss;
+    return asWin;
+}
+
+/** Rank to show after a match: unchanged RP keeps the current rank (no flip across a division boundary) */
+export function nextRankInfo(stored: StoredRank, oldRp: number, newRp: number, isLoss: boolean): RankInfo {
+    if (newRp === oldRp) return currentRankInfo(stored, oldRp);
+    return getRankInfoFromPoints(newRp, { isLoss });
+}
+
 export function calculateBravePoints(isWin: boolean, currentStreak: number = 0): number {
     if (!isWin) return 15; // แพ้ได้แต้มปลอบใจ 15 BP
     let bp = 30; // ชนะปกติ 30 BP
