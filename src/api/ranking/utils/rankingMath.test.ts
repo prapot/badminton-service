@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeLoserUpdate, computeRevert, computeWinnerUpdate, MAX_UPSET_BONUS } from './rankingMath';
+import { computeLoserUpdate, computeRevert, computeWinnerUpdate, currentRankInfo, getRankInfoFromPoints, MAX_UPSET_BONUS, nextRankInfo } from './rankingMath';
 
 const win = (o: Partial<Parameters<typeof computeWinnerUpdate>[0]> = {}) =>
     computeWinnerUpdate({ oldRp: 500, oldBp: 0, streakBefore: 0, tier: 'Silver', weightDiff: 0, isRankingMode: true, ...o });
@@ -95,5 +95,49 @@ describe('computeRevert', () => {
     it('handles legacy history rows without bp_change / streak', () => {
         const r = computeRevert({ ranking: { ranking_points: 300, brave_points: 40, win_streak: 0, lose: 1 }, history: { rp_change: -100, is_win: false }, isLatest: true });
         expect(r).toMatchObject({ ranking_points: 400, brave_points: 40, win_streak: 0, lose: 0 });
+    });
+});
+
+describe('rank at a division boundary (900 RP = Bronze I 3★ or Silver III 0★)', () => {
+    const bronzeTop = { rank: 'Bronze I', stars: 3, rank_tier: 'Bronze' };
+    const silverBottom = { rank: 'Silver III', stars: 0, rank_tier: 'Silver' };
+
+    it('reads the stored rank when it matches the RP', () => {
+        expect(currentRankInfo(bronzeTop, 900).rankStr).toBe('Bronze I');
+        expect(currentRankInfo(silverBottom, 900)).toMatchObject({ tier: 'Silver', rankStr: 'Silver III', stars: 0 });
+    });
+
+    it('ignores a stored rank that does not fit the RP', () => {
+        expect(currentRankInfo({ rank: 'Master', rank_tier: 'Master' }, 900).rankStr).toBe('Bronze I');
+        expect(currentRankInfo({}, 900).rankStr).toBe('Bronze I');
+    });
+
+    it('Bronze I 3★ losing stays Bronze I 3★ (used to flip to Silver III 0★)', () => {
+        const tier = currentRankInfo(bronzeTop, 900).tier;
+        const d = lose({ oldRp: 900, tier });
+        expect(d.rpChange).toBe(0);
+        expect(nextRankInfo(bronzeTop, 900, d.newRp, true)).toMatchObject({ rankStr: 'Bronze I', stars: 3 });
+    });
+
+    it('Silver III 0★ losing drops to Bronze I 2★ (used to be protected forever)', () => {
+        const tier = currentRankInfo(silverBottom, 900).tier;
+        const d = lose({ oldRp: 900, tier });
+        expect(d.newRp).toBe(800);
+        expect(nextRankInfo(silverBottom, 900, d.newRp, true)).toMatchObject({ rankStr: 'Bronze I', stars: 2 });
+    });
+
+    it('Silver III 0★ keeps its rank when RP does not move (protected loss / casual match)', () => {
+        expect(nextRankInfo(silverBottom, 900, 900, false).rankStr).toBe('Silver III');
+        expect(nextRankInfo(silverBottom, 900, 900, true).rankStr).toBe('Silver III');
+    });
+
+    it('wins from either state land on Silver III 1★', () => {
+        expect(nextRankInfo(bronzeTop, 900, 1000, false)).toMatchObject({ rankStr: 'Silver III', stars: 1 });
+        expect(nextRankInfo(silverBottom, 900, 1000, false)).toMatchObject({ rankStr: 'Silver III', stars: 1 });
+    });
+
+    it('Master starts at 4500 RP', () => {
+        expect(getRankInfoFromPoints(4500).tier).toBe('Master');
+        expect(getRankInfoFromPoints(4400, { isLoss: true })).toMatchObject({ rankStr: 'Diamond I', stars: 2 });
     });
 });
