@@ -1,6 +1,7 @@
 
 import { factories } from '@strapi/strapi';
-import { calculateBravePoints, computeLoserUpdate, computeRevert, computeWinnerUpdate, currentRankInfo, getRankInfoFromPoints, nextRankInfo } from '../utils/rankingMath';
+import { calculateBravePoints, computeLoserUpdate, computeRevert, computeWinnerUpdate, currentRankInfo, describeRankResult, getRankInfoFromPoints, nextRankInfo, RankResult } from '../utils/rankingMath';
+import { notifyRankResults } from '../../../utils/realtime';
 
 export default factories.createCoreService('api::ranking.ranking', ({ strapi }) => ({
     async getOrCreateCurrentSeason() {
@@ -94,7 +95,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
         return ranking;
     },
 
-    async recordMatch(winners: number[], losers: number[], winnerScore: number, loserScore: number, matchId: number, isRankingMode: boolean = false) {
+    async recordMatch(winners: number[], losers: number[], winnerScore: number, loserScore: number, matchId: number, isRankingMode: boolean = false, options: { notify?: boolean } = {}) {
         const activeSeason = await this.getOrCreateCurrentSeason();
 
         const winnerRankings = await Promise.all(winners.map(id => this.getOrCreateRanking(id, activeSeason)));
@@ -108,6 +109,8 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             weightDiff = avgWeightLosers - avgWeightWinners;
         }
 
+        const rankResults: { userId: number; data: RankResult }[] = [];
+
         // Record Winners
         await Promise.all(winnerRankings.map(async (ranking: any, index) => {
             const userId = winners[index];
@@ -115,11 +118,14 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             const oldBp = Number(ranking.brave_points || 0);
 
             const streakBefore = Number(ranking.win_streak || 0);
-            const { newRp, newBp, rpChange: rpGain, bpChange } = computeWinnerUpdate({
-                oldRp, oldBp, streakBefore, tier: currentRankInfo(ranking, oldRp).tier, weightDiff, isRankingMode
+            const before = currentRankInfo(ranking, oldRp);
+            const delta = computeWinnerUpdate({
+                oldRp, oldBp, streakBefore, tier: before.tier, weightDiff, isRankingMode
             });
+            const { newRp, newBp, rpChange: rpGain, bpChange } = delta;
 
             const rankInfo = nextRankInfo(ranking, oldRp, newRp, false);
+            rankResults.push({ userId, data: describeRankResult({ matchId, isWin: true, delta, oldBp, before, after: rankInfo }) });
             console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
@@ -164,11 +170,13 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
 
             const oldRankInfo = currentRankInfo(ranking, oldRp);
             const streakBefore = Number(ranking.win_streak || 0);
-            const { newRp, newBp, rpChange, bpChange } = computeLoserUpdate({
+            const delta = computeLoserUpdate({
                 oldRp, oldBp, tier: oldRankInfo.tier, weightDiff, isRankingMode
             });
+            const { newRp, newBp, rpChange, bpChange } = delta;
 
             const rankInfo = nextRankInfo(ranking, oldRp, newRp, true);
+            rankResults.push({ userId, data: describeRankResult({ matchId, isWin: false, delta, oldBp, before: oldRankInfo, after: rankInfo }) });
             console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
 
             await strapi.db.query('api::ranking.ranking').update({
@@ -204,6 +212,9 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                 }
             });
         }));
+
+        // แจ้งผลดาว/แรงค์ให้ผู้เล่นแต่ละคน (เฉพาะโหมด ranking และเฉพาะแมตช์จริง — recalibrate ไม่ส่ง)
+        if (isRankingMode && options.notify) notifyRankResults(rankResults);
     },
 
     async revertMatch(matchId: number) {
