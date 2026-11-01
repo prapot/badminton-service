@@ -568,6 +568,7 @@ export interface ApiMatchHistoryMatchHistory
     draftAndPublish: false;
   };
   attributes: {
+    bp_change: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -581,6 +582,8 @@ export interface ApiMatchHistoryMatchHistory
     matches: Schema.Attribute.Relation<'manyToMany', 'api::match.match'>;
     new_rp: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     old_rp: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    point_against: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    point_for: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     rank_after: Schema.Attribute.String;
     rank_before: Schema.Attribute.String;
@@ -593,6 +596,7 @@ export interface ApiMatchHistoryMatchHistory
       'manyToMany',
       'plugin::users-permissions.user'
     >;
+    win_streak_before: Schema.Attribute.Integer;
   };
 }
 

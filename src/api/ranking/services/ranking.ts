@@ -1,7 +1,6 @@
 
 import { factories } from '@strapi/strapi';
-
-const BRAVE_POINTS_CAP = 100;
+import { calculateBravePoints, computeLoserUpdate, computeRevert, computeWinnerUpdate } from '../utils/rankingMath';
 
 export default factories.createCoreService('api::ranking.ranking', ({ strapi }) => ({
     async getOrCreateCurrentSeason() {
@@ -115,24 +114,10 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             const oldRp = Number(ranking.ranking_points || 0);
             const oldBp = Number(ranking.brave_points || 0);
 
-            let newRp = oldRp;
-            let newBp = oldBp;
-            let rpGain = 0;
-
-            if (isRankingMode) {
-                const currentStreak = Number(ranking.win_streak || 0) + 1;
-                let bpGain = this.calculateBravePoints(true, currentStreak);
-                if (weightDiff > 200) bpGain += Math.floor(weightDiff / 20);
-
-                newBp = oldBp + bpGain;
-                rpGain = 100;
-
-                if (newBp >= BRAVE_POINTS_CAP) {
-                    rpGain += 100;
-                    newBp -= BRAVE_POINTS_CAP;
-                }
-                newRp = oldRp + rpGain;
-            }
+            const streakBefore = Number(ranking.win_streak || 0);
+            const { newRp, newBp, rpChange: rpGain, bpChange } = computeWinnerUpdate({
+                oldRp, oldBp, streakBefore, tier: this.getRankInfoFromPoints(oldRp).tier, weightDiff, isRankingMode
+            });
 
             const rankInfo = this.getRankInfoFromPoints(newRp, { isLoss: false });
             console.log(`[Ranking Service] Updating Winner ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
@@ -161,6 +146,8 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     old_rp: oldRp,
                     new_rp: newRp,
                     rp_change: rpGain,
+                    bp_change: bpChange,
+                    win_streak_before: streakBefore,
                     is_win: true,
                     users: userId,
                     point_for: winnerScore,
@@ -176,29 +163,10 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             const oldBp = Number(ranking.brave_points || 0);
 
             const oldRankInfo = this.getRankInfoFromPoints(oldRp);
-            let newRp = oldRp;
-            let newBp = oldBp;
-            let rpLoss = 0;
-
-            if (isRankingMode) {
-                let bpGain = this.calculateBravePoints(false);
-                if (weightDiff < -500) bpGain += 10;
-
-                newBp = oldBp + bpGain;
-
-                // Bronze Protection: No star loss in Bronze rank
-                if (oldRankInfo.tier === 'Bronze') {
-                    rpLoss = 0;
-                } else {
-                    rpLoss = 100;
-                    // General Protection: Use Brave Points if full
-                    if (newBp >= BRAVE_POINTS_CAP) {
-                        rpLoss = 0;
-                        newBp -= BRAVE_POINTS_CAP;
-                    }
-                }
-                newRp = Math.max(0, oldRp - rpLoss);
-            }
+            const streakBefore = Number(ranking.win_streak || 0);
+            const { newRp, newBp, rpChange, bpChange } = computeLoserUpdate({
+                oldRp, oldBp, tier: oldRankInfo.tier, weightDiff, isRankingMode
+            });
 
             const rankInfo = this.getRankInfoFromPoints(newRp, { isLoss: true });
             console.log(`[Ranking Service] Updating Loser ${userId}: ${oldRp} -> ${newRp} RP, Rank: ${rankInfo.rankStr}, Stars: ${rankInfo.stars}`);
@@ -226,7 +194,9 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
                     matches: matchId, // Using numeric id here
                     old_rp: oldRp,
                     new_rp: newRp,
-                    rp_change: -rpLoss,
+                    rp_change: rpChange,
+                    bp_change: bpChange,
+                    win_streak_before: streakBefore,
                     is_win: false,
                     users: userId,
                     point_for: loserScore,
@@ -251,27 +221,22 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
             const ranking = history.ranking;
             if (!ranking) continue;
 
-            const rpChange = Number(history.rp_change || 0);
-            const isWin = history.is_win;
-            const pFor = Number(history.point_for || 0);
-            const pAgainst = Number(history.point_against || 0);
-
-            const newRp = Math.max(0, (ranking.ranking_points || 0) - rpChange);
-            const rankInfo = this.getRankInfoFromPoints(newRp);
+            // streak ของแมตช์แพ้คืนได้เฉพาะเมื่อไม่มีแมตช์ใหม่กว่าบันทึกต่อจากนี้
+            const newerCount = await strapi.db.query('api::match-history.match-history').count({
+                where: { ranking: ranking.id, id: { $gt: history.id } }
+            });
+            const data = computeRevert({ ranking, history, isLatest: newerCount === 0 });
+            // ถอยแมตช์ชนะ = RP ลดลง → แสดงผลขอบ division แบบเดียวกับตอนแพ้
+            const rankInfo = this.getRankInfoFromPoints(data.ranking_points, { isLoss: history.is_win === true });
 
             await strapi.db.query('api::ranking.ranking').update({
                 where: { id: ranking.id },
                 data: {
-                    ranking_points: newRp,
+                    ...data,
                     rank: rankInfo.rankStr,
                     stars: rankInfo.stars,
                     rank_tier: rankInfo.tier,
-                    rank_division: rankInfo.divisionNum,
-                    match_played: Math.max(0, (ranking.match_played || 0) - 1),
-                    win: isWin ? Math.max(0, (ranking.win || 0) - 1) : ranking.win,
-                    lose: !isWin ? Math.max(0, (ranking.lose || 0) - 1) : ranking.lose,
-                    point_for: Math.max(0, (ranking.point_for || 0) - pFor),
-                    point_against: Math.max(0, (ranking.point_against || 0) - pAgainst)
+                    rank_division: rankInfo.divisionNum
                 }
             });
         }
@@ -353,19 +318,7 @@ export default factories.createCoreService('api::ranking.ranking', ({ strapi }) 
     },
 
     calculateBravePoints(isWin: boolean, currentStreak: number = 0) {
-        if (!isWin) return 15; // แพ้ได้แต้มปลอบใจ 15 BP (เดิม 10)
-        let bp = 30; // ชนะปกติได้ 30 BP (เดิม 20)
-        // Win streak bonus (สไตล์ ROV ช่วยเร่งแต้มผู้กล้า)
-        if (currentStreak >= 5) {
-            bp += 40; // ชนะติดกัน 5 นัดขึ้นไป ได้ 70 BP
-        } else if (currentStreak >= 4) {
-            bp += 30; // ชนะติดกัน 4 นัด ได้ 60 BP
-        } else if (currentStreak >= 3) {
-            bp += 20; // ชนะติดกัน 3 นัด ได้ 50 BP (ชนะ 2 นัดติดกันได้โบนัส +1 ดาวทันที)
-        } else if (currentStreak >= 2) {
-            bp += 10; // ชนะติดกัน 2 นัด ได้ 40 BP
-        }
-        return bp;
+        return calculateBravePoints(isWin, currentStreak);
     },
 
     async recalibrateSeason() {

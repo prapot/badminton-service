@@ -50,6 +50,21 @@
     },
     "rank_after": {
       "type": "string"
+    },
+    "point_for": {
+      "type": "integer",
+      "default": 0
+    },
+    "point_against": {
+      "type": "integer",
+      "default": 0
+    },
+    "bp_change": {
+      "type": "integer",
+      "default": 0
+    },
+    "win_streak_before": {
+      "type": "integer"
     }
   }
 }
