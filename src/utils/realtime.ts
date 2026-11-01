@@ -4,6 +4,7 @@
  * Channels:
  *  - `tournament-<documentId>`  event `changed`      → clients refetch; payload `{ scope: 'matches' | 'tournament' }`
  *  - `user-<userId>`            event `match-alert`  → "your match is up" popup for that player
+ *  - `user-<userId>`            event `rank-result`  → stars / brave points / rank change after a ranking match
  *
  * All triggers are fire-and-forget: a Pusher outage must never fail or slow down an API request.
  */
@@ -73,6 +74,19 @@ export function notifyMatchAlert(matchId: number, teamA: MatchAlertPlayer[], tea
   pusher
     .triggerBatch(userIds.map((id) => ({ channel: `user-${id}`, name: 'match-alert', data })))
     .catch((err) => console.error('[realtime] match-alert trigger failed:', err?.message || err));
+}
+
+export function notifyRankResults(results: { userId: number; data: object }[]) {
+  const pusher = getClient();
+  if (!pusher) return;
+  const events = results.filter((r) => r.userId > 0).map((r) => ({ channel: `user-${r.userId}`, name: 'rank-result', data: r.data }));
+  if (events.length === 0) return;
+  // triggerBatch accepts at most 10 events per call
+  for (let i = 0; i < events.length; i += 10) {
+    pusher
+      .triggerBatch(events.slice(i, i + 10))
+      .catch((err) => console.error('[realtime] rank-result trigger failed:', err?.message || err));
+  }
 }
 
 /**

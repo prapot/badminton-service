@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeLoserUpdate, computeRevert, computeWinnerUpdate, currentRankInfo, getRankInfoFromPoints, MAX_UPSET_BONUS, nextRankInfo } from './rankingMath';
+import { computeLoserUpdate, computeRevert, computeWinnerUpdate, currentRankInfo, describeRankResult, getRankInfoFromPoints, MAX_UPSET_BONUS, nextRankInfo } from './rankingMath';
 
 const win = (o: Partial<Parameters<typeof computeWinnerUpdate>[0]> = {}) =>
     computeWinnerUpdate({ oldRp: 500, oldBp: 0, streakBefore: 0, tier: 'Silver', weightDiff: 0, isRankingMode: true, ...o });
@@ -139,5 +139,42 @@ describe('rank at a division boundary (900 RP = Bronze I 3★ or Silver III 0★
     it('Master starts at 4500 RP', () => {
         expect(getRankInfoFromPoints(4500).tier).toBe('Master');
         expect(getRankInfoFromPoints(4400, { isLoss: true })).toMatchObject({ rankStr: 'Diamond I', stars: 2 });
+    });
+});
+
+describe('describeRankResult', () => {
+    const info = (rp: number, isLoss = false) => getRankInfoFromPoints(rp, { isLoss });
+    const describe_ = (isWin: boolean, delta: ReturnType<typeof computeWinnerUpdate>, oldBp: number, oldRp: number) =>
+        describeRankResult({ matchId: 7, isWin, delta, oldBp, before: info(oldRp), after: info(delta.newRp, !isWin) });
+
+    it('plain win', () => {
+        const d = win({ oldRp: 400, oldBp: 0 });
+        expect(describe_(true, d, 0, 400)).toMatchObject({ starChange: 1, bonusStar: false, bpGain: 30, bp: 30, movement: null, rankAfter: 'Bronze II', starsAfter: 2 });
+    });
+
+    it('bonus star win that ranks up', () => {
+        const d = win({ oldRp: 800, oldBp: 80 });
+        expect(describe_(true, d, 80, 800)).toMatchObject({ starChange: 2, bonusStar: true, bpGain: 30, bp: 10, rankBefore: 'Bronze I', rankAfter: 'Silver III', movement: 'up' });
+    });
+
+    it('shielded loss', () => {
+        const d = lose({ oldRp: 1500, oldBp: 90 });
+        expect(describe_(false, d, 90, 1500)).toMatchObject({ starChange: 0, shielded: true, bronzeSafe: false, bpGain: 15, bp: 5 });
+    });
+
+    it('Bronze loss', () => {
+        const d = lose({ tier: 'Bronze', oldRp: 200, oldBp: 0 });
+        expect(describe_(false, d, 0, 200)).toMatchObject({ starChange: 0, shielded: false, bronzeSafe: true, bpGain: 15 });
+    });
+
+    it('loss that drops a division (Silver III 0★ → Bronze I 2★)', () => {
+        const d = lose({ oldRp: 900, oldBp: 0 });
+        const r = describeRankResult({ matchId: 7, isWin: false, delta: d, oldBp: 0, before: info(900, true), after: info(d.newRp, true) });
+        expect(r).toMatchObject({ starChange: -1, movement: 'down', rankBefore: 'Silver III', rankAfter: 'Bronze I', starsAfter: 2 });
+    });
+
+    it('Master has no brave points', () => {
+        const d = win({ tier: 'Master', oldRp: 5000, oldBp: 40 });
+        expect(describe_(true, d, 40, 5000)).toMatchObject({ starChange: 1, bonusStar: false, bp: null, bpGain: 0, starsAfter: 6 });
     });
 });

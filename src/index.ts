@@ -88,7 +88,8 @@ export default {
                 isWinnerA ? scoreA : scoreB,
                 isWinnerA ? scoreB : scoreA,
                 match.id,
-                isRankingMode
+                isRankingMode,
+                { notify: true }
               );
               console.log(`[Global Lifecycle] SUCCESS: Stats updated for match ${documentId}`);
             } else {

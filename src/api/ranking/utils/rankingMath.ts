@@ -248,3 +248,59 @@ export function computeRevert({ ranking: r, history: h, isLatest }: RevertInput)
         point_against: Math.max(0, n(r.point_against) - n(h.point_against)),
     };
 }
+
+/** Payload of the `user-<id>` `rank-result` event (mirrored in the frontend's RankResult type) */
+export interface RankResult {
+    matchId: number;
+    isWin: boolean;
+    rpChange: number;
+    /** stars gained (+) or lost (−) this match */
+    starChange: number;
+    bonusStar: boolean;
+    /** lost but full brave points saved the star */
+    shielded: boolean;
+    /** lost in Bronze (no star loss) */
+    bronzeSafe: boolean;
+    bpGain: number;
+    /** null for Master (no brave points) */
+    bp: number | null;
+    rankBefore: string;
+    rankAfter: string;
+    starsAfter: number;
+    /** division moved up / down */
+    movement: 'up' | 'down' | null;
+}
+
+export function describeRankResult(p: {
+    matchId: number;
+    isWin: boolean;
+    delta: RankingDelta;
+    oldBp: number;
+    before: RankInfo;
+    after: RankInfo;
+}): RankResult {
+    const { delta, before, after, isWin } = p;
+    const isMaster = before.tier === 'Master' || after.tier === 'Master';
+    const starChange = Math.round(delta.rpChange / RP_PER_STAR);
+    const lossWithoutStarLoss = !isWin && delta.rpChange === 0;
+    // BP ที่ได้จากแมตช์นี้ (ก่อนหักใช้ดาวโบนัส/กันดาว)
+    const spent = (isWin && starChange > 1) || (lossWithoutStarLoss && before.tier !== 'Bronze') ? BRAVE_POINTS_CAP : 0;
+    let movement: RankResult['movement'] = null;
+    if (before.rankStr !== after.rankStr) movement = after.weight > before.weight ? 'up' : 'down';
+
+    return {
+        matchId: p.matchId,
+        isWin,
+        rpChange: delta.rpChange,
+        starChange,
+        bonusStar: isWin && starChange > 1,
+        shielded: lossWithoutStarLoss && before.tier !== 'Bronze' && !isMaster,
+        bronzeSafe: lossWithoutStarLoss && before.tier === 'Bronze',
+        bpGain: isMaster ? 0 : delta.newBp - p.oldBp + spent,
+        bp: isMaster && after.tier === 'Master' ? null : delta.newBp,
+        rankBefore: before.rankStr,
+        rankAfter: after.rankStr,
+        starsAfter: after.stars,
+        movement,
+    };
+}
